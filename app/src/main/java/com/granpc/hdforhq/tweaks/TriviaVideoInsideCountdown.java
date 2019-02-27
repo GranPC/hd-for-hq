@@ -45,6 +45,12 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 FrameLayout trivia_view_layout = (FrameLayout) videoSurface.getParent();
                 trivia_view_layout.addView( videoView, 1 );
 
+                // Hiding the SurfaceView fixes the black flicker issue that appears in regular HQ sometimes
+                videoSurface.setVisibility( View.GONE );
+
+                // This ugly hack fixes the stream looking pixelated on some devices. Thanks, I hate it.
+                videoView.setScaleX( 1.0000001f );
+
                 // Step 2: Give the stream controller our TextureView - it will later pass it on to the stream
                 XposedHelpers.setAdditionalInstanceField( streamController, "HDTextureView", videoView );
 
