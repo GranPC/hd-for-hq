@@ -90,8 +90,11 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
             @Override
             protected void afterHookedMethod( MethodHookParam param ) throws Throwable
             {
-                Object hqStream = XposedHelpers.getObjectField( param.thisObject, "h" );
-                XposedHelpers.setAdditionalInstanceField( hqStream, "HDTextureView", XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDTextureView" ) );
+                if ( XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDTextureView" ) != null )
+                {
+                    Object hqStream = XposedHelpers.getObjectField( param.thisObject, "h" );
+                    XposedHelpers.setAdditionalInstanceField( hqStream, "HDTextureView", XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDTextureView" ) );
+                }
             }
         } );
 
@@ -103,13 +106,21 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
             protected void beforeHookedMethod( MethodHookParam param ) throws Throwable
             {
                 Object hqStream = param.args[ 0 ];
+                TextureView tv = (TextureView) XposedHelpers.getAdditionalInstanceField( hqStream, "HDTextureView" );
+
+                if ( tv == null )
+                {
+                    Log.d( "HD4HQ", "This stream hasn't been manipulated by HD4HQ, bailing." );
+                    return;
+                }
+
+                // Point of no return: by calling this we override the original method entirely.
                 param.setResult( null );
 
                 Log.d( "HD4HQ", "Obtaining video surface" );
                 Surface surf = null;
                 while( XposedHelpers.getBooleanField( hqStream, "play" ) && surf == null )
                 {
-                    TextureView tv = (TextureView) XposedHelpers.getAdditionalInstanceField( hqStream, "HDTextureView" );
                     if ( tv != null && tv.getSurfaceTexture() != null )
                     {
                         Log.d( "HD4HQ", "Got video surface!" );
@@ -148,14 +159,14 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 {
                     if ( (boolean) param.args[ 0 ] )
                     {
-                    	Log.d( "HD4HQ", "We are up to date" );
-						videoFx.setVisibility( View.VISIBLE );
-                        videoFx.animateIn();
+                        Log.d( "HD4HQ", "We are up to date" );
+                        videoFx.setVisibility( View.VISIBLE );
+                        videoFx.onQuestionShown();
                     }
                     else
                     {
-                    	Log.d( "HD4HQ", "Question is gone" );
-			            videoFx.setVisibility( View.INVISIBLE );
+                        Log.d( "HD4HQ", "Question is gone" );
+                        videoFx.setVisibility( View.INVISIBLE );
                     }
                 }
             }
