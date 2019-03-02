@@ -1,5 +1,6 @@
 package com.granpc.hdforhq.tweaks;
 
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,9 +9,13 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.PathInterpolator;
+import android.view.animation.ScaleAnimation;
 import android.widget.FrameLayout;
 
 import com.granpc.hdforhq.views.VideoEffectView;
+
+import java.util.List;
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookConstructor;
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
@@ -155,19 +160,75 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
             protected void afterHookedMethod( MethodHookParam param ) throws Throwable
             {
                 VideoEffectView videoFx = (VideoEffectView) XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDFXView" );
+
                 if ( videoFx != null )
                 {
                     if ( (boolean) param.args[ 0 ] )
                     {
-                        Log.d( "HD4HQ", "We are up to date" );
+                        videoFx.countdownContainer.setScaleX( 1 );
+                        videoFx.countdownContainer.setScaleY( 1 );
+
                         videoFx.setVisibility( View.VISIBLE );
                         videoFx.onQuestionShown();
                     }
                     else
                     {
-                        Log.d( "HD4HQ", "Question is gone" );
                         videoFx.setVisibility( View.INVISIBLE );
                     }
+
+                    // Step 8: Give the question view to the countdown handler.
+                    Object triviaQuestionView = XposedHelpers.getObjectField( param.thisObject, "a" );
+                    Object countdownHandler = XposedHelpers.getObjectField( triviaQuestionView, "e" );
+                    XposedHelpers.setAdditionalInstanceField( countdownHandler, "HDTriviaQuestionView", triviaQuestionView );
+                }
+            }
+        } );
+
+        // Step 9: Hide the countdown circle when time is up, with a neat transition
+        findAndHookMethod("com.intermedia.trivia.TriviaQuestionView$a", lpparam.classLoader,
+            "onFinish", new XC_MethodHook()
+        {
+            @Override
+            protected void afterHookedMethod( MethodHookParam param ) throws Throwable
+            {
+                Object triviaQuestionView = XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDTriviaQuestionView" );
+                if ( triviaQuestionView == null )
+                {
+                    Log.d( "HD4HQ", "Countdown doesn't have trivia question view handle" );
+                    return;
+                }
+
+                Log.d( "HD4HQ", "animating out" );
+
+                PathInterpolator interpolator = new PathInterpolator( 0.20f, 0.0f, 0.85f, 0.30f );
+                FrameLayout countdownContainer = ( FrameLayout ) XposedHelpers.getObjectField( triviaQuestionView, "countdownContainer" );
+
+                ObjectAnimator scaleX = ObjectAnimator.ofFloat( countdownContainer, "scaleX", 0.0f );
+                ObjectAnimator scaleY = ObjectAnimator.ofFloat( countdownContainer, "scaleY", 0.0f );
+
+                scaleX.setInterpolator( interpolator );
+                scaleX.setDuration( 200 );
+
+                scaleY.setInterpolator( interpolator );
+                scaleY.setDuration( 200 );
+
+                scaleX.start();
+                scaleY.start();
+            }
+        } );
+
+        // Step 10: Hide the effect view when showing results, at least for now.
+        findAndHookMethod("com.intermedia.trivia.TriviaQuestionViewHost", lpparam.classLoader,
+            "a", List.class, int.class, new XC_MethodHook()
+        {
+            @Override
+            protected void afterHookedMethod( MethodHookParam param ) throws Throwable
+            {
+                VideoEffectView videoFx = (VideoEffectView) XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDFXView" );
+
+                if ( videoFx != null )
+                {
+                    videoFx.setVisibility( View.INVISIBLE );
                 }
             }
         } );

@@ -2,27 +2,33 @@ package com.granpc.hdforhq.views;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.TextureView;
 import android.view.View;
+import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
 
 public class VideoEffectView extends View
 {
+    public static final int TYPE_TRIVIA = 0;
+    public static final int ANIMATING_IN_QUESTION    = 0;
+    public static final int ANIMATING_OUT_PILL       = 1;
+
+    private static final float QUESTION_HEAD_SCALE = 0.15f;
+
+    private static final int TRIVIA_ANIM_IN_MILLIS        = 300;
+    private static final int TRIVIA_ANIM_PILL_OUT_MILLIS  = 700;
+
+    private static final PathInterpolator scaleInAnimateInterpolator =
+        new PathInterpolator( 0.05f, 0.70f, 0.2f, 1.07f );
+
     public TextureView videoView;
     public FrameLayout countdownContainer;
-
-    public static final int TYPE_TRIVIA = 0;
-    public static final int ANIMATING_IN = 0;
-
-    private static final float TRIVIA_HEAD_X_OFF    = 2.82f; // -0.42f;
-    private static final float TRIVIA_HEAD_Y_OFF    = 0.65f; //-0.1f;
-    private static final float TRIVIA_HEAD_SCALE    = 0.15f;
-
-    private static final int TRIVIA_ANIM_IN_MILLIS  = 260;
 
     private int countdownPos[];
     private Path circlePath;
@@ -47,11 +53,19 @@ public class VideoEffectView extends View
         countdownBorderSize = TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_SP, 5.1f, getResources().getDisplayMetrics() );
     }
 
-    public void animateIn()
+    public void onQuestionShown()
     {
-        animating = ANIMATING_IN;
+        animating = ANIMATING_IN_QUESTION;
         animateStartMs = SystemClock.uptimeMillis();
         animateEndMs = animateStartMs + TRIVIA_ANIM_IN_MILLIS;
+        postInvalidate();
+    }
+
+    public void onPillShown()
+    {
+        animating = ANIMATING_OUT_PILL;
+        animateStartMs = SystemClock.uptimeMillis();
+        animateEndMs = animateStartMs + TRIVIA_ANIM_PILL_OUT_MILLIS;
         postInvalidate();
     }
 
@@ -67,9 +81,12 @@ public class VideoEffectView extends View
     protected void onDraw( Canvas canvas )
     {
         long now = SystemClock.uptimeMillis();
-        long animLength = animateEndMs - animateStartMs;
-        long animLapsed = now - animateStartMs;
+        float animLength = animateEndMs - animateStartMs;
+        float animLapsed = now - animateStartMs;
         float animScalar = easeOutExpo( animLapsed, 0, 1, animLength );
+        float animPct = animLapsed / animLength;
+
+        if ( animPct > 1 ) animPct = 1;
 
         if ( !canvas.isHardwareAccelerated() )
         {
@@ -87,38 +104,32 @@ public class VideoEffectView extends View
 
                 float x = countdownPos[ 0 ] + countdownBorderSize;
                 float y = countdownPos[ 1 ] + countdownBorderSize;
-                float w = countdownContainer.getWidth() - countdownBorderSize * 2;
-                float h = countdownContainer.getHeight() - countdownBorderSize * 2;
+                float w = countdownContainer.getWidth() * countdownContainer.getScaleX() - countdownBorderSize * 2;
+                float h = countdownContainer.getHeight() * countdownContainer.getScaleX() - countdownBorderSize * 2;
 
-                float translateX = x - radius / 2; // videoView.getWidth() * TRIVIA_HEAD_X_OFF;
-                float translateY = y; // videoView.getHeight() * TRIVIA_HEAD_Y_OFF;
+                if ( w < 0 ) w = 0;
+                if ( h < 0 ) h = 0;
 
-                float scale = easeOutExpo( animLapsed, 1, -1 + TRIVIA_HEAD_SCALE, animLength );
+                float scale = QUESTION_HEAD_SCALE;
 
-                translateX = easeOutExpo( animLapsed, 0, translateX, animLength );
-                translateY = easeOutExpo( animLapsed, 0, translateY, animLength );
+                if ( animating == ANIMATING_IN_QUESTION )
+                {
+                    scale = 1 - scaleInAnimateInterpolator.getInterpolation( animPct ) * ( 1 - scale );
+                    x *= animScalar;
+                    y *= animScalar;
+                    w = easeOutExpo( animLapsed, getWidth(), -getWidth() + w, animLength );
+                    h = easeOutExpo( animLapsed, getHeight(), -getHeight() + h, animLength );
+                }
 
-                x *= animScalar;
-                y *= animScalar;
-                w = easeOutExpo( animLapsed, getWidth(), -getWidth() + w, animLength );
-                h = easeOutExpo( animLapsed, getHeight(), -getHeight() + h, animLength );
 
-                float borderRadius = (w / 2) * animScalar;
-                circlePath.addRoundRect( x, y, x+w, y+h, borderRadius, borderRadius, Path.Direction.CW );
+                float borderRadius = animating == ANIMATING_IN_QUESTION ? (w / 2) * animScalar : w / 2;
+                circlePath.addRoundRect( x, y, x + w, y + h, borderRadius, borderRadius, Path.Direction.CW );
 
                 canvas.clipPath( circlePath );
 
-                canvas.translate( translateX, translateY );
-                canvas.scale( scale, scale );
-
+                canvas.scale( scale, scale, x + w / 2, y + radius / 2 ); // h / 5
 
                 videoView.draw( canvas );
-
-                /*Paint debugTest = new Paint();
-                debugTest.setColor( Color.RED );
-                debugTest.setStyle( Paint.Style.FILL );
-
-                canvas.drawRect( 0, 0, 2000, 2000, debugTest );*/
 
             canvas.restore();
 
