@@ -168,6 +168,9 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                         videoFx.countdownContainer.setScaleX( 1 );
                         videoFx.countdownContainer.setScaleY( 1 );
 
+                        videoFx.setScaleX( 1 );
+                        videoFx.setScaleY( 1 );
+
                         videoFx.setVisibility( View.VISIBLE );
                         videoFx.onQuestionShown();
                     }
@@ -176,10 +179,11 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                         videoFx.setVisibility( View.INVISIBLE );
                     }
 
-                    // Step 8: Give the question view to the countdown handler.
+                    // Step 8: Give the question & fx view to the countdown handler.
                     Object triviaQuestionView = XposedHelpers.getObjectField( param.thisObject, "a" );
                     Object countdownHandler = XposedHelpers.getObjectField( triviaQuestionView, "e" );
                     XposedHelpers.setAdditionalInstanceField( countdownHandler, "HDTriviaQuestionView", triviaQuestionView );
+                    XposedHelpers.setAdditionalInstanceField( countdownHandler, "HDFXView", videoFx );
                 }
             }
         } );
@@ -192,7 +196,8 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
             protected void afterHookedMethod( MethodHookParam param ) throws Throwable
             {
                 Object triviaQuestionView = XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDTriviaQuestionView" );
-                if ( triviaQuestionView == null )
+                VideoEffectView videoFx = ( VideoEffectView ) XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDFXView" );
+                if ( triviaQuestionView == null || videoFx == null )
                 {
                     Log.d( "HD4HQ", "Countdown doesn't have trivia question view handle" );
                     return;
@@ -203,8 +208,8 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 PathInterpolator interpolator = new PathInterpolator( 0.20f, 0.0f, 0.85f, 0.30f );
                 FrameLayout countdownContainer = ( FrameLayout ) XposedHelpers.getObjectField( triviaQuestionView, "countdownContainer" );
 
-                ObjectAnimator scaleX = ObjectAnimator.ofFloat( countdownContainer, "scaleX", 0.0f );
-                ObjectAnimator scaleY = ObjectAnimator.ofFloat( countdownContainer, "scaleY", 0.0f );
+                ObjectAnimator scaleX = ObjectAnimator.ofFloat( videoFx, "scaleX", 0.0f );
+                ObjectAnimator scaleY = ObjectAnimator.ofFloat( videoFx, "scaleY", 0.0f );
 
                 scaleX.setInterpolator( interpolator );
                 scaleX.setDuration( 200 );

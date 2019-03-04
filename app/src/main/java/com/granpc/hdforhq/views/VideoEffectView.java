@@ -121,6 +121,8 @@ public class VideoEffectView extends View
                     h = easeOutExpo( animLapsed, getHeight(), -getHeight() + h, animLength );
                 }
 
+                setPivotX( x + w / 2.0f );
+                setPivotY( y + h / 2.0f );
 
                 float borderRadius = animating == ANIMATING_IN_QUESTION ? (w / 2) * animScalar : w / 2;
                 circlePath.addRoundRect( x, y, x + w, y + h, borderRadius, borderRadius, Path.Direction.CW );
