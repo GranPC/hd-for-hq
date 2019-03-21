@@ -23,7 +23,7 @@ public class VideoHijackHelper implements IXposedHookLoadPackage
             return;
 
         // Tell the stream controller to give the stream object our view
-        findAndHookMethod( "com.intermedia.game.ab", lpparam.classLoader,
+        findAndHookMethod( "com.intermedia.game.z", lpparam.classLoader,
             "a", String.class, new XC_MethodHook()
         {
             @Override

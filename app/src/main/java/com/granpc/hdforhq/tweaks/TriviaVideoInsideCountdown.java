@@ -41,7 +41,7 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 Object thiz = param.thisObject;
 
                 // Step 1: Replace the game's SurfaceView used for video rendering with a TextureView (HW rendering required)
-                Object streamController = XposedHelpers.getObjectField( thiz, "ac" );
+                Object streamController = XposedHelpers.getObjectField( thiz, "ai" );
                 Object streamViewHost = XposedHelpers.getObjectField( streamController, "c" );
                 SurfaceView videoSurface = (SurfaceView) XposedHelpers.getObjectField( streamViewHost, "videoSurface" );
 
@@ -71,11 +71,11 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 final VideoEffectView videoFx = new VideoEffectView( (Activity) thiz );
                 videoFx.videoView = videoView;
 
-                Object triviaQuestionViewHost = XposedHelpers.getObjectField( thiz, "L" );
+                Object triviaQuestionViewHost = XposedHelpers.getObjectField( thiz, "S" );
                 XposedHelpers.setAdditionalInstanceField( triviaQuestionViewHost, "HDFXView", videoFx );
 
                 // Step 4: Our VideoEffectView needs to know where the countdown timer thingy is
-                Object triviaQuestionView = XposedHelpers.getObjectField( triviaQuestionViewHost, "a" );
+                Object triviaQuestionView = XposedHelpers.getObjectField( triviaQuestionViewHost, "c" );
                 FrameLayout countdownContainer = (FrameLayout) XposedHelpers.getObjectField( triviaQuestionView, "countdownContainer" );
                 videoFx.countdownContainer = countdownContainer;
 
@@ -118,8 +118,8 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                     }
 
                     // Step 8: Give the question & fx view to the countdown handler.
-                    Object triviaQuestionView = XposedHelpers.getObjectField( param.thisObject, "a" );
-                    Object countdownHandler = XposedHelpers.getObjectField( triviaQuestionView, "e" );
+                    Object triviaQuestionView = XposedHelpers.getObjectField( param.thisObject, "c" );
+                    Object countdownHandler = XposedHelpers.getObjectField( triviaQuestionView, "g" );
                     XposedHelpers.setAdditionalInstanceField( countdownHandler, "HDTriviaQuestionView", triviaQuestionView );
                     XposedHelpers.setAdditionalInstanceField( countdownHandler, "HDFXView", videoFx );
                 }
