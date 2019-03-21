@@ -16,5 +16,10 @@ HD for HQ is not a cheat tool. HD for HQ will never add features that Intermedia
   - Play sound when tapping answer
   - Fancy "Time's up!"/"Correct" animation
 
+### HQ Words
+
+- https://www.youtube.com/watch?v=ZnNVdrDfj4o @ 3:24
+  - Video inside wheel
+
 - Friend avatars don't show anymore on their tapped answers. TODO: find reference video
 - Enable text correction on chat input box

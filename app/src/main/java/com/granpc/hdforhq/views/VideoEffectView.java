@@ -2,8 +2,6 @@ package com.granpc.hdforhq.views;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.SystemClock;
 import android.util.Log;
@@ -16,12 +14,17 @@ import android.widget.FrameLayout;
 public class VideoEffectView extends View
 {
     public static final int TYPE_TRIVIA = 0;
+    public static final int TYPE_WORDS  = 1;
+
     public static final int ANIMATING_IN_QUESTION    = 0;
     public static final int ANIMATING_OUT_PILL       = 1;
+    public static final int ANIMATING_IN_WHEEL       = 2;
 
     private static final float QUESTION_HEAD_SCALE = 0.15f;
+    private static final float WHEEL_HEAD_SCALE = 0.32f;
 
     private static final int TRIVIA_ANIM_IN_MILLIS        = 300;
+    private static final int WORDS_ANIM_WHEEL_IN_MILLIS   = 300;
     private static final int TRIVIA_ANIM_PILL_OUT_MILLIS  = 700;
 
     private static final PathInterpolator scaleInAnimateInterpolator =
@@ -29,8 +32,9 @@ public class VideoEffectView extends View
 
     public TextureView videoView;
     public FrameLayout countdownContainer;
+    public View wheelContainer;
 
-    private int countdownPos[];
+    private int anchorPos[];
     private Path circlePath;
     private float countdownBorderSize;
 
@@ -40,17 +44,23 @@ public class VideoEffectView extends View
 
     private int type = TYPE_TRIVIA;
 
-    public VideoEffectView( Context context )
+    public VideoEffectView( Context context, int _type )
     {
         super( context );
         setLayerType( LAYER_TYPE_HARDWARE, null );
 
-        countdownPos = new int[2];
+        anchorPos = new int[2];
         circlePath = new Path();
         videoView = null;
 
         // According to progress_circle.xml, countdown thickness is 5.1sp
         countdownBorderSize = TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_SP, 5.1f, getResources().getDisplayMetrics() );
+        type = _type;
+    }
+
+    public VideoEffectView( Context context )
+    {
+        this( context, TYPE_TRIVIA );
     }
 
     public void onQuestionShown()
@@ -66,6 +76,14 @@ public class VideoEffectView extends View
         animating = ANIMATING_OUT_PILL;
         animateStartMs = SystemClock.uptimeMillis();
         animateEndMs = animateStartMs + TRIVIA_ANIM_PILL_OUT_MILLIS;
+        postInvalidate();
+    }
+
+    public void onWheelShown()
+    {
+        animating = ANIMATING_IN_WHEEL;
+        animateStartMs = SystemClock.uptimeMillis();
+        animateEndMs = animateStartMs + WORDS_ANIM_WHEEL_IN_MILLIS;
         postInvalidate();
     }
 
@@ -96,23 +114,53 @@ public class VideoEffectView extends View
         {
             // This only works on Nougat+. Got to figure out something for old versions, maybe.
 
+            View anchor = countdownContainer;
+            if ( type == TYPE_WORDS && animating == ANIMATING_IN_WHEEL )
+            {
+                anchor = wheelContainer;
+            }
+
             canvas.save();
 
-                countdownContainer.getLocationOnScreen( countdownPos );
+                anchor.getLocationOnScreen( anchorPos );
                 circlePath.reset();
-                float radius = countdownContainer.getWidth() / 2 - countdownBorderSize;
+                float radius = 0;
 
-                float x = countdownPos[ 0 ] + countdownBorderSize;
-                float y = countdownPos[ 1 ] + countdownBorderSize;
-                float w = countdownContainer.getWidth() * countdownContainer.getScaleX() - countdownBorderSize * 2;
-                float h = countdownContainer.getHeight() * countdownContainer.getScaleX() - countdownBorderSize * 2;
+                float x = 0;
+                float y = 0;
+                float w = 0;
+                float h = 0;
 
-                if ( w < 0 ) w = 0;
-                if ( h < 0 ) h = 0;
+                float px = 0;
+                float py = 0;
 
                 float scale = QUESTION_HEAD_SCALE;
 
                 if ( animating == ANIMATING_IN_QUESTION )
+                {
+                    radius = countdownContainer.getWidth() / 2 - countdownBorderSize;
+
+                    x = anchorPos[0] + countdownBorderSize;
+                    y = anchorPos[1] + countdownBorderSize;
+                    w = countdownContainer.getWidth() * countdownContainer.getScaleX() - countdownBorderSize * 2;
+                    h = countdownContainer.getHeight() * countdownContainer.getScaleX() - countdownBorderSize * 2;
+                }
+                else if ( animating == ANIMATING_IN_WHEEL )
+                {
+                    scale = WHEEL_HEAD_SCALE;
+
+                    radius = wheelContainer.getWidth() / 3;
+
+                    x = anchorPos[0] + wheelContainer.getWidth() / 2 - radius / 2;
+                    y = anchorPos[1] + wheelContainer.getHeight() / 2 - radius / 2;
+                    w = radius;
+                    h = radius;
+                }
+
+                if ( w < 0 ) w = 0;
+                if ( h < 0 ) h = 0;
+
+                if ( animating == ANIMATING_IN_QUESTION || animating == ANIMATING_IN_WHEEL )
                 {
                     scale = 1 - scaleInAnimateInterpolator.getInterpolation( animPct ) * ( 1 - scale );
                     x *= animScalar;
@@ -124,12 +172,23 @@ public class VideoEffectView extends View
                 setPivotX( x + w / 2.0f );
                 setPivotY( y + h / 2.0f );
 
-                float borderRadius = animating == ANIMATING_IN_QUESTION ? (w / 2) * animScalar : w / 2;
+                if ( animating == ANIMATING_IN_QUESTION )
+                {
+                    px = x + w / 2;
+                    py = y + radius / 2;
+                }
+                else if ( animating == ANIMATING_IN_WHEEL )
+                {
+                    px = x + w / 2;
+                    py = y + radius * 0.95f;
+                }
+
+                float borderRadius = (animating == ANIMATING_IN_QUESTION || animating == ANIMATING_IN_WHEEL) ? (w / 2) * animScalar : w / 2;
                 circlePath.addRoundRect( x, y, x + w, y + h, borderRadius, borderRadius, Path.Direction.CW );
 
                 canvas.clipPath( circlePath );
 
-                canvas.scale( scale, scale, x + w / 2, y + radius / 2 ); // h / 5
+                canvas.scale( scale, scale, px, py ); // h / 5
 
                 videoView.draw( canvas );
 
