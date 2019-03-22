@@ -25,7 +25,7 @@ public class VideoEffectView extends View
     private static final float WHEEL_HEAD_SCALE = 0.32f;
 
     private static final int TRIVIA_ANIM_IN_MILLIS        = 300;
-    private static final int WORDS_ANIM_WHEEL_IN_MILLIS   = 3000;
+    private static final int WORDS_ANIM_WHEEL_IN_MILLIS   = 300;
 
     private static final PathInterpolator scaleInAnimateInterpolator =
         new PathInterpolator( 0.05f, 0.70f, 0.2f, 1.07f );
