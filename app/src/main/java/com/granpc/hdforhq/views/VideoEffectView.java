@@ -2,6 +2,8 @@ package com.granpc.hdforhq.views;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.SystemClock;
 import android.util.Log;
@@ -17,18 +19,22 @@ public class VideoEffectView extends View
     public static final int TYPE_WORDS  = 1;
 
     public static final int ANIMATING_IN_QUESTION    = 0;
-    public static final int ANIMATING_OUT_PILL       = 1;
-    public static final int ANIMATING_IN_WHEEL       = 2;
+    public static final int ANIMATING_IN_WHEEL       = 1;
 
     private static final float QUESTION_HEAD_SCALE = 0.15f;
     private static final float WHEEL_HEAD_SCALE = 0.32f;
 
     private static final int TRIVIA_ANIM_IN_MILLIS        = 300;
-    private static final int WORDS_ANIM_WHEEL_IN_MILLIS   = 300;
-    private static final int TRIVIA_ANIM_PILL_OUT_MILLIS  = 700;
+    private static final int WORDS_ANIM_WHEEL_IN_MILLIS   = 3000;
 
     private static final PathInterpolator scaleInAnimateInterpolator =
         new PathInterpolator( 0.05f, 0.70f, 0.2f, 1.07f );
+
+    private static final PathInterpolator wheelHeadScaleInterpolator =
+        new PathInterpolator( 0.05f, 0.66f, 0.25f, 1.75f );
+
+    private static final PathInterpolator wheelHeadYInterpolator =
+        new PathInterpolator( 0.00f, 0.50f, 0.30f, 0.60f );
 
     public TextureView videoView;
     public FrameLayout countdownContainer;
@@ -63,28 +69,23 @@ public class VideoEffectView extends View
         this( context, TYPE_TRIVIA );
     }
 
-    public void onQuestionShown()
+    private void startAnimation( int duration )
     {
-        animating = ANIMATING_IN_QUESTION;
         animateStartMs = SystemClock.uptimeMillis();
-        animateEndMs = animateStartMs + TRIVIA_ANIM_IN_MILLIS;
+        animateEndMs = animateStartMs + duration;
         postInvalidate();
     }
 
-    public void onPillShown()
+    public void onQuestionShown()
     {
-        animating = ANIMATING_OUT_PILL;
-        animateStartMs = SystemClock.uptimeMillis();
-        animateEndMs = animateStartMs + TRIVIA_ANIM_PILL_OUT_MILLIS;
-        postInvalidate();
+        animating = ANIMATING_IN_QUESTION;
+        startAnimation( TRIVIA_ANIM_IN_MILLIS );
     }
 
     public void onWheelShown()
     {
         animating = ANIMATING_IN_WHEEL;
-        animateStartMs = SystemClock.uptimeMillis();
-        animateEndMs = animateStartMs + WORDS_ANIM_WHEEL_IN_MILLIS;
-        postInvalidate();
+        startAnimation( WORDS_ANIM_WHEEL_IN_MILLIS );
     }
 
     // TODO: maybe using animators would be worth it? dunno!
@@ -160,40 +161,54 @@ public class VideoEffectView extends View
                 if ( w < 0 ) w = 0;
                 if ( h < 0 ) h = 0;
 
-                if ( animating == ANIMATING_IN_QUESTION || animating == ANIMATING_IN_WHEEL )
+                float borderRadius = (animating == ANIMATING_IN_QUESTION || animating == ANIMATING_IN_WHEEL) ? (w / 2) * animScalar : w / 2;
+
+                if ( animating == ANIMATING_IN_QUESTION )
                 {
                     scale = 1 - scaleInAnimateInterpolator.getInterpolation( animPct ) * ( 1 - scale );
                     x *= animScalar;
                     y *= animScalar;
                     w = easeOutExpo( animLapsed, getWidth(), -getWidth() + w, animLength );
                     h = easeOutExpo( animLapsed, getHeight(), -getHeight() + h, animLength );
-                }
 
-                setPivotX( x + w / 2.0f );
-                setPivotY( y + h / 2.0f );
-
-                if ( animating == ANIMATING_IN_QUESTION )
-                {
                     px = x + w / 2;
                     py = y + radius / 2;
                 }
                 else if ( animating == ANIMATING_IN_WHEEL )
                 {
-                    px = x + w / 2;
-                    py = y + radius * 0.95f;
+                    x *= wheelHeadScaleInterpolator.getInterpolation( animPct );
+                    y *= wheelHeadYInterpolator.getInterpolation( animPct ) * wheelHeadScaleInterpolator.getInterpolation( animPct );
+                    w = getWidth() + (wheelHeadScaleInterpolator.getInterpolation( animPct )) * (-getWidth() + w);
+                    h = w;
+
+                    scale = w / getWidth();
+
+                    borderRadius = w;
+
+                    px = x;
+                    py = y;
                 }
 
-                float borderRadius = (animating == ANIMATING_IN_QUESTION || animating == ANIMATING_IN_WHEEL) ? (w / 2) * animScalar : w / 2;
+                setPivotX( x + w / 2.0f );
+                setPivotY( y + h / 2.0f );
+
                 circlePath.addRoundRect( x, y, x + w, y + h, borderRadius, borderRadius, Path.Direction.CW );
 
                 canvas.clipPath( circlePath );
 
-                canvas.scale( scale, scale, px, py ); // h / 5
+                if ( animating == ANIMATING_IN_WHEEL )
+                {
+                    canvas.translate( px, py );
+                    canvas.scale( scale, scale );
+                }
+                else
+                {
+                    canvas.scale( scale, scale, px, py );
+                }
 
                 videoView.draw( canvas );
 
             canvas.restore();
-
         }
         else
         {
