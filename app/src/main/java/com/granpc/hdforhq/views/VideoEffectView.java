@@ -25,16 +25,16 @@ public class VideoEffectView extends View
     private static final float WHEEL_HEAD_SCALE = 0.32f;
 
     private static final int TRIVIA_ANIM_IN_MILLIS        = 300;
-    private static final int WORDS_ANIM_WHEEL_IN_MILLIS   = 300;
+    private static final int WORDS_ANIM_WHEEL_IN_MILLIS   = 250;
 
     private static final PathInterpolator scaleInAnimateInterpolator =
         new PathInterpolator( 0.05f, 0.70f, 0.2f, 1.07f );
 
     private static final PathInterpolator wheelHeadScaleInterpolator =
-        new PathInterpolator( 0.05f, 0.66f, 0.25f, 1.75f );
+        new PathInterpolator( 0.05f, 0.66f, 0.25f, 1.65f );
 
     private static final PathInterpolator wheelHeadYInterpolator =
-        new PathInterpolator( 0.00f, 0.50f, 0.30f, 0.60f );
+        new PathInterpolator( 0.00f, 0.50f, 0.50f, 0.90f );
 
     public TextureView videoView;
     public FrameLayout countdownContainer;

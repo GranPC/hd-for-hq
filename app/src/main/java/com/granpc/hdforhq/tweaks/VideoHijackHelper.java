@@ -23,7 +23,7 @@ public class VideoHijackHelper implements IXposedHookLoadPackage
             return;
 
         // Tell the stream controller to give the stream object our view
-        findAndHookMethod( "com.intermedia.game.z", lpparam.classLoader,
+        findAndHookMethod( "com.intermedia.game.Nb", lpparam.classLoader,
             "a", String.class, new XC_MethodHook()
         {
             @Override
@@ -39,12 +39,12 @@ public class VideoHijackHelper implements IXposedHookLoadPackage
 
         // Hijack the stream so it gets drawn to our TextureView
         findAndHookMethod( "com.tendigi.hq.hqplayer.HQStream", lpparam.classLoader,
-            "lambda$play$0", "com.tendigi.hq.hqplayer.HQStream", String.class, new XC_MethodHook()
+            "a", String.class, new XC_MethodHook()
         {
             @Override
             protected void beforeHookedMethod( MethodHookParam param ) throws Throwable
             {
-                Object hqStream = param.args[0];
+                Object hqStream = param.thisObject;
                 TextureView tv = (TextureView) XposedHelpers.getAdditionalInstanceField( hqStream, "HDTextureView" );
 
                 if ( tv == null )
@@ -71,7 +71,7 @@ public class VideoHijackHelper implements IXposedHookLoadPackage
                 while ( XposedHelpers.getBooleanField( hqStream, "play" ) && !done )
                 {
                     Class<?> HQStreamContext = XposedHelpers.findClass( "com.tendigi.hq.hqplayer.HQStreamContext", lpparam.classLoader );
-                    done = (boolean) XposedHelpers.callMethod( hqStream, "connect", param.args[1], XposedHelpers.newInstance( HQStreamContext, surf ) );
+                    done = (boolean) XposedHelpers.callMethod( hqStream, "connect", param.args[0], XposedHelpers.newInstance( HQStreamContext, surf ) );
                     if ( !done )
                     {
                         XposedHelpers.callMethod( hqStream, "closeFormatContext" );

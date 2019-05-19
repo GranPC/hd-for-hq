@@ -9,6 +9,7 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
 
@@ -42,7 +43,7 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
                 Object thiz = param.thisObject;
 
                 // Step 1: Replace the game's SurfaceView used for video rendering with a TextureView (HW rendering required)
-                Object streamController = XposedHelpers.getObjectField( thiz, "P" );
+                Object streamController = XposedHelpers.getObjectField( thiz, "r" );
                 Object streamViewHost = XposedHelpers.getObjectField( streamController, "c" );
                 SurfaceView videoSurface = (SurfaceView) XposedHelpers.getObjectField( streamViewHost, "videoSurface" );
 
@@ -61,8 +62,8 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
                 XposedHelpers.setAdditionalInstanceField( streamController, "HDTextureView", videoView );
 
                 // Step 3: Insert our VideoEffectView
-                // 2131362165 = R.id.game_drawer
-                ViewGroup wordsActivityView = (ViewGroup) XposedHelpers.callMethod( thiz, "a", 2131362886 );
+                // 2131362178 = R.id.gameDrawer
+                ViewGroup wordsActivityView = (ViewGroup) XposedHelpers.callMethod( thiz, "b", 2131362178 );
 
                 final VideoEffectView videoFx = new VideoEffectView( (Activity) thiz, VideoEffectView.TYPE_WORDS );
                 videoFx.videoView = videoView;
@@ -80,15 +81,34 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
 
         // Steps 4 and 5: see tweaks/VideoHijackHelper
 
+        findAndHookConstructor( "com.intermedia.words.Ya", lpparam.classLoader,
+            "com.intermedia.model.Aa", ViewGroup.class, Context.class, "com.intermedia.websocket.ba", new XC_MethodHook()
+        {
+            @Override
+            protected void afterHookedMethod( MethodHookParam param ) throws Throwable
+            {
+                View wheel_modal = (View) XposedHelpers.getObjectField( param.thisObject, "d" );
+                wheel_modal.setVisibility( View.INVISIBLE );
+            }
+        } );
+
         // Step 6: Start the animation when the wheel appears
-        findAndHookMethod("com.intermedia.words.aa", lpparam.classLoader,
-            "a", "com.intermedia.words.ah", int.class, int.class, new XC_MethodHook()
+        findAndHookMethod("com.intermedia.words.Ya", lpparam.classLoader,
+            "a", "com.intermedia.words.Gb", int.class, int.class, new XC_MethodHook()
         {
             @Override
             protected void afterHookedMethod( MethodHookParam param ) throws Throwable
             {
                 Object wordsActivity = XposedHelpers.getObjectField( param.thisObject, "t" );
+                View wheel_modal = (View) XposedHelpers.getObjectField( param.thisObject, "a" );
                 VideoEffectView videoFx = (VideoEffectView) XposedHelpers.getAdditionalInstanceField( wordsActivity, "HDFXView" );
+
+                wheel_modal.setAlpha( 0.0f );
+                wheel_modal.setVisibility( View.VISIBLE );
+
+                ObjectAnimator anim = ObjectAnimator.ofFloat( wheel_modal, "alpha", 0.0f, 0.0f, 1.0f );
+                anim.setDuration( 200 );
+                anim.start();
 
                 Log.d( "HD4HQ", "Wheel shown!" );
 
@@ -107,7 +127,7 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
         } );
 
         // Step 7: Hide our video effect view when the wheel disappears.
-        findAndHookMethod("com.intermedia.words.aa", lpparam.classLoader,
+        findAndHookMethod("com.intermedia.words.Ya", lpparam.classLoader,
             "a", new XC_MethodHook()
         {
             @Override

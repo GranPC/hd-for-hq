@@ -41,7 +41,7 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 Object thiz = param.thisObject;
 
                 // Step 1: Replace the game's SurfaceView used for video rendering with a TextureView (HW rendering required)
-                Object streamController = XposedHelpers.getObjectField( thiz, "ai" );
+                Object streamController = XposedHelpers.getObjectField( thiz, "Z" );
                 Object streamViewHost = XposedHelpers.getObjectField( streamController, "c" );
                 SurfaceView videoSurface = (SurfaceView) XposedHelpers.getObjectField( streamViewHost, "videoSurface" );
 
@@ -60,7 +60,8 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 XposedHelpers.setAdditionalInstanceField( streamController, "HDTextureView", videoView );
 
                 // Step 3: Insert our VideoEffectView and give it to the question view host
-                ViewGroup drawerLayout = (ViewGroup) XposedHelpers.getObjectField( thiz, "gameDrawer" );
+                // 2131362178 = R.id.gameDrawer
+                ViewGroup drawerLayout = (ViewGroup) XposedHelpers.callMethod( thiz, "findViewById", 2131362178 );
                 ViewGroup gameContainer = (ViewGroup) drawerLayout.getChildAt( 0 );
 
                 // TODO: gameContainer should == trivia_view_layout, make sure
@@ -71,7 +72,7 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 final VideoEffectView videoFx = new VideoEffectView( (Activity) thiz );
                 videoFx.videoView = videoView;
 
-                Object triviaQuestionViewHost = XposedHelpers.getObjectField( thiz, "S" );
+                Object triviaQuestionViewHost = XposedHelpers.getObjectField( thiz, "M" );
                 XposedHelpers.setAdditionalInstanceField( triviaQuestionViewHost, "HDFXView", videoFx );
 
                 // Step 4: Our VideoEffectView needs to know where the countdown timer thingy is
