@@ -94,7 +94,7 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
 
         // Step 6: Start the animation when the wheel appears
         findAndHookMethod("com.intermedia.words.Ya", lpparam.classLoader,
-            "a", "com.intermedia.words.Gb", int.class, int.class, new XC_MethodHook()
+            "b", new XC_MethodHook()
         {
             @Override
             protected void afterHookedMethod( MethodHookParam param ) throws Throwable
@@ -114,7 +114,7 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
 
                 if ( videoFx != null )
                 {
-                    videoFx.wheelContainer = (View) XposedHelpers.getObjectField( param.thisObject, "f" );
+                    videoFx.wheelContainer = (View) XposedHelpers.getObjectField( param.thisObject, "c" );
                     videoFx.bringToFront();
 
                     videoFx.setScaleX( 1 );
@@ -133,6 +133,8 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
             @Override
             protected void afterHookedMethod( MethodHookParam param ) throws Throwable
             {
+                Log.d( "HD4HQ", "Wheel is gone!" );
+
                 Object wordsActivity = XposedHelpers.getObjectField( param.thisObject, "t" );
                 VideoEffectView videoFx = (VideoEffectView) XposedHelpers.getAdditionalInstanceField( wordsActivity, "HDFXView" );
 
