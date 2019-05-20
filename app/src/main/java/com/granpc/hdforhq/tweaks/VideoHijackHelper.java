@@ -23,14 +23,16 @@ public class VideoHijackHelper implements IXposedHookLoadPackage
             return;
 
         // Tell the stream controller to give the stream object our view
-        findAndHookMethod( "com.intermedia.game.Nb", lpparam.classLoader,
+        findAndHookMethod( "com.intermedia.game.Pb", lpparam.classLoader,
             "a", String.class, new XC_MethodHook()
         {
             @Override
             protected void afterHookedMethod( MethodHookParam param ) throws Throwable
             {
+                Log.d( "HD4HQ", "start has been called" );
                 if ( XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDTextureView" ) != null )
                 {
+                    Log.d( "HD4HQ", "Stream controller is passing the HDTextureView onto its stream..." );
                     Object hqStream = XposedHelpers.getObjectField( param.thisObject, "h" );
                     XposedHelpers.setAdditionalInstanceField( hqStream, "HDTextureView", XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDTextureView" ) );
                 }

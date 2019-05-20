@@ -35,12 +35,15 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
             return;
 
         findAndHookMethod( "com.intermedia.words.WordsActivity", lpparam.classLoader,
-            "onCreate", Bundle.class, new XC_MethodHook()
+            "e", "com.intermedia.words.WordsActivity", new XC_MethodHook()
         {
             @Override
-            protected void afterHookedMethod( MethodHookParam param ) throws Throwable
+            protected void beforeHookedMethod( MethodHookParam param ) throws Throwable
             {
-                Object thiz = param.thisObject;
+                Log.d( "HD4HQ", "stream is being fetched, prepare if not ready" );
+                Object thiz = param.args[ 0 ];
+
+                if ( XposedHelpers.getAdditionalInstanceField( thiz, "HDReady" ) != null ) return;
 
                 // Step 1: Replace the game's SurfaceView used for video rendering with a TextureView (HW rendering required)
                 Object streamController = XposedHelpers.getObjectField( thiz, "r" );
@@ -62,8 +65,8 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
                 XposedHelpers.setAdditionalInstanceField( streamController, "HDTextureView", videoView );
 
                 // Step 3: Insert our VideoEffectView
-                // 2131362178 = R.id.gameDrawer
-                ViewGroup wordsActivityView = (ViewGroup) XposedHelpers.callMethod( thiz, "b", 2131362178 );
+                // 2131362209 = R.id.gameDrawer
+                ViewGroup wordsActivityView = (ViewGroup) XposedHelpers.callMethod( thiz, "b", 2131362209 );
 
                 final VideoEffectView videoFx = new VideoEffectView( (Activity) thiz, VideoEffectView.TYPE_WORDS );
                 videoFx.videoView = videoView;
@@ -74,6 +77,7 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
                 videoFx.setVisibility( View.INVISIBLE );
 
                 XposedHelpers.setAdditionalInstanceField( thiz, "HDFXView", videoFx );
+                XposedHelpers.setAdditionalInstanceField( thiz, "HDReady", true );
 
                 Log.d( "HD4HQ", "All done!" );
             }
@@ -82,7 +86,7 @@ public class WordsVideoEffects implements IXposedHookLoadPackage
         // Steps 4 and 5: see tweaks/VideoHijackHelper
 
         findAndHookConstructor( "com.intermedia.words.Ya", lpparam.classLoader,
-            "com.intermedia.model.Aa", ViewGroup.class, Context.class, "com.intermedia.websocket.ba", new XC_MethodHook()
+            "com.intermedia.model.Ba", ViewGroup.class, Context.class, "com.intermedia.websocket.ba", new XC_MethodHook()
         {
             @Override
             protected void afterHookedMethod( MethodHookParam param ) throws Throwable

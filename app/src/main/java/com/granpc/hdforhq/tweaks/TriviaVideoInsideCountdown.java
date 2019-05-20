@@ -33,15 +33,18 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
             return;
 
         findAndHookMethod( "com.intermedia.trivia.TriviaActivity", lpparam.classLoader,
-            "onCreate", Bundle.class, new XC_MethodHook()
+            "i", "com.intermedia.trivia.TriviaActivity", new XC_MethodHook()
         {
             @Override
-            protected void afterHookedMethod( MethodHookParam param ) throws Throwable
+            protected void beforeHookedMethod( MethodHookParam param ) throws Throwable
             {
-                Object thiz = param.thisObject;
+                Log.d( "HD4HQ", "stream is being fetched, prepare if not ready" );
+                Object thiz = param.args[ 0 ];
+
+                if ( XposedHelpers.getAdditionalInstanceField( thiz, "HDReady" ) != null ) return;
 
                 // Step 1: Replace the game's SurfaceView used for video rendering with a TextureView (HW rendering required)
-                Object streamController = XposedHelpers.getObjectField( thiz, "Z" );
+                Object streamController = XposedHelpers.getObjectField( thiz, "fa" );
                 Object streamViewHost = XposedHelpers.getObjectField( streamController, "c" );
                 SurfaceView videoSurface = (SurfaceView) XposedHelpers.getObjectField( streamViewHost, "videoSurface" );
 
@@ -60,8 +63,8 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 XposedHelpers.setAdditionalInstanceField( streamController, "HDTextureView", videoView );
 
                 // Step 3: Insert our VideoEffectView and give it to the question view host
-                // 2131362178 = R.id.gameDrawer
-                ViewGroup drawerLayout = (ViewGroup) XposedHelpers.callMethod( thiz, "findViewById", 2131362178 );
+                // 2131362209 = R.id.gameDrawer
+                ViewGroup drawerLayout = (ViewGroup) XposedHelpers.callMethod( thiz, "findViewById", 2131362209 );
                 ViewGroup gameContainer = (ViewGroup) drawerLayout.getChildAt( 0 );
 
                 // TODO: gameContainer should == trivia_view_layout, make sure
@@ -72,7 +75,7 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 final VideoEffectView videoFx = new VideoEffectView( (Activity) thiz );
                 videoFx.videoView = videoView;
 
-                Object triviaQuestionViewHost = XposedHelpers.getObjectField( thiz, "M" );
+                Object triviaQuestionViewHost = XposedHelpers.getObjectField( thiz, "R" );
                 XposedHelpers.setAdditionalInstanceField( triviaQuestionViewHost, "HDFXView", videoFx );
 
                 // Step 4: Our VideoEffectView needs to know where the countdown timer thingy is
@@ -85,6 +88,8 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
                 gameContainer.bringChildToFront( videoFx );
                 videoFx.setVisibility( View.INVISIBLE );
 
+                XposedHelpers.setAdditionalInstanceField( thiz, "HDReady", true );
+
                 Log.d( "HD4HQ", "All done!" );
             }
         } );
@@ -93,7 +98,7 @@ public class TriviaVideoInsideCountdown implements IXposedHookLoadPackage
 
         // Step 7: Start the animation when a new question is asked.
         findAndHookMethod("com.intermedia.trivia.TriviaQuestionViewHost", lpparam.classLoader,
-            "c", boolean.class, new XC_MethodHook()
+            "b", boolean.class, new XC_MethodHook()
         {
             @Override
             protected void afterHookedMethod( MethodHookParam param ) throws Throwable
