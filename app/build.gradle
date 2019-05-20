@@ -6,8 +6,8 @@ android {
         applicationId "com.granpc.hdforhq"
         minSdkVersion 22
         targetSdkVersion 26
-        versionCode 4
-        versionName "0.3.1"
+        versionCode 5
+        versionName "0.3.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
