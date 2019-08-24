@@ -6,4 +6,8 @@ public class O
 {
     public static String BaseInjectedActivity = "mc.S";
     public static String AppCompatActivity = "android.support.v7.app.m";
+
+    public static String AppCompatWindowDecorActionBar = "android.support.v7.app.L";
+    public static String AppCompatWindowDecorActionBar_hide = "n";
+    public static String AppCompatWindowDecorActionBar_mContainerView = "h";
 }
