@@ -5,6 +5,7 @@ package com.granpc.hdforhq.deobfuscation;
 public class O
 {
     public static String BaseInjectedActivity = "mc.S";
+    public static String BaseInjectedActivity_getAuthedApi = "e";
     public static String AppCompatActivity = "android.support.v7.app.m";
 
     public static String AppCompatWindowDecorActionBar = "android.support.v7.app.L";

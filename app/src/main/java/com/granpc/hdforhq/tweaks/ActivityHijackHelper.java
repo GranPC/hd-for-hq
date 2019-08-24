@@ -26,6 +26,7 @@ public class ActivityHijackHelper implements IXposedHookLoadPackage
         BaseHQActivity.baseOnCreate = XposedHelpers.findMethodExact( O.BaseInjectedActivity, lpparam.classLoader, "onCreate", Bundle.class );
         BaseHQActivity.baseGetSupportActionBar = XposedHelpers.findMethodExact( O.AppCompatActivity, lpparam.classLoader, "getSupportActionBar" );
         BaseHQActivity.supportActionBarHide = XposedHelpers.findMethodExact( O.AppCompatWindowDecorActionBar, lpparam.classLoader, O.AppCompatWindowDecorActionBar_hide );
+        BaseHQActivity.baseGetAuthedApi = XposedHelpers.findMethodExact( O.BaseInjectedActivity, lpparam.classLoader, O.BaseInjectedActivity_getAuthedApi );
 
         findAndHookMethod( baseActivity, lpparam.classLoader,
             "onCreate", Bundle.class, new XC_MethodHook()
