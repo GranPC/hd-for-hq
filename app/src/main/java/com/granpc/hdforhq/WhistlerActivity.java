@@ -26,8 +26,8 @@ public class WhistlerActivity extends AppCompatActivity
     @Override
     protected void onPause()
     {
-        super.onStop();
-        activity.onStop();
+        super.onPause();
+        activity.onPause();
     }
 
     @Override
