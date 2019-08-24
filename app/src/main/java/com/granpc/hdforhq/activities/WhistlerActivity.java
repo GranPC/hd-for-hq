@@ -11,15 +11,22 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.view.OnApplyWindowInsetsListener;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.WindowInsetsCompat;
+import android.support.v4.widget.TextViewCompat;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -27,20 +34,29 @@ import android.widget.TextView;
 
 import com.granpc.hdforhq.models.ApiWhistlerAnswerResult;
 import com.granpc.hdforhq.models.ApiWhistlerGame;
+import com.granpc.hdforhq.views.WhistlerAnswerButtonView;
 import com.granpc.hdforhq.views.WhistlerSubtitleView;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class WhistlerActivity extends BaseHQActivity
 {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private MediaPlayer bgMusic;
+    private List<View> splashViews = new ArrayList<View>();
+
+    private ConstraintLayout gameLayout;
+    private TextView questionView;
+    private List<WhistlerAnswerButtonView> answerViews = new ArrayList<WhistlerAnswerButtonView>();
 
     public WhistlerActivity()
     {
@@ -67,6 +83,8 @@ public class WhistlerActivity extends BaseHQActivity
     private RelativeLayout generateLayout()
     {
         int scrW = Resources.getSystem().getDisplayMetrics().widthPixels;
+        int scrH = Resources.getSystem().getDisplayMetrics().heightPixels;
+
         RelativeLayout layout = new RelativeLayout( thiz );
         layout.setFitsSystemWindows( false );
         layout.setBackgroundColor( 0xff36399a );
@@ -136,6 +154,85 @@ public class WhistlerActivity extends BaseHQActivity
         layout.addView( startButton, buttonLayout );
 
         dailySubtitle.startAnimation();
+        startButton.setOnClickListener( new View.OnClickListener()
+        {
+            @Override
+            public void onClick( View v )
+            {
+                WhistlerActivity.this.startGame();
+            }
+        } );
+
+        splashViews.add( dailyHeader );
+        splashViews.add( dailySubtitle );
+        splashViews.add( startButton );
+
+        ConstraintLayout gameLayout = new ConstraintLayout( thiz );
+        gameLayout.setId( 1 );
+
+        AppCompatTextView questionLabel = new AppCompatTextView( thiz );
+        questionLabel.setId( 10 );
+        questionLabel.setText( "Duck à l'Orange is a dish from which country?" );
+        questionLabel.setTypeface( hqFont );
+        questionLabel.setTextColor( Color.WHITE );
+        questionLabel.setTextSize( TypedValue.COMPLEX_UNIT_SP, 18.f );
+        questionLabel.setLineSpacing( 0.0f, 1.2f );
+        questionLabel.setPadding( 0, spacing, 0, 0 );
+        questionLabel.setGravity( Gravity.CENTER );
+        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+            questionLabel, 14, 24, 2, TypedValue.COMPLEX_UNIT_SP );
+        gameLayout.addView( questionLabel, ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT );
+
+        questionView = questionLabel;
+
+        WhistlerAnswerButtonView answerA = new WhistlerAnswerButtonView( thiz );
+        answerA.setId( 11 );
+        answerA.setText( "America" );
+        answerA.setTypeface( hqFont );
+        answerViews.add( answerA );
+
+        WhistlerAnswerButtonView answerB = new WhistlerAnswerButtonView( thiz );
+        answerB.setId( 12 );
+        answerB.setText( "France" );
+        answerB.setTypeface( hqFont );
+        answerViews.add( answerB );
+
+        WhistlerAnswerButtonView answerC = new WhistlerAnswerButtonView( thiz );
+        answerC.setId( 13 );
+        answerC.setText( "Russia" );
+        answerC.setTypeface( hqFont );
+        answerViews.add( answerC );
+
+        final int answerHeight = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 56, thiz.getResources().getDisplayMetrics() );
+        final int answerMargin = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 8, thiz.getResources().getDisplayMetrics() );
+        gameLayout.addView( answerA, ConstraintLayout.LayoutParams.WRAP_CONTENT );
+        gameLayout.addView( answerB, ConstraintLayout.LayoutParams.WRAP_CONTENT );
+        gameLayout.addView( answerC, ConstraintLayout.LayoutParams.WRAP_CONTENT );
+
+        ConstraintSet gameConstraints = new ConstraintSet();
+        for ( int i = 11; i <= 13; i++ )
+        {
+            gameConstraints.constrainWidth( i, (int) ( scrW / 1.35f ) );
+            gameConstraints.constrainHeight( i, answerHeight );
+            gameConstraints.centerHorizontally( i, 1 );
+        }
+        gameConstraints.connect( 10, ConstraintSet.TOP, 1, ConstraintSet.TOP );
+        gameConstraints.connect( 11, ConstraintSet.TOP, 10, ConstraintSet.BOTTOM, answerMargin );
+        gameConstraints.connect( 12, ConstraintSet.TOP, 11, ConstraintSet.BOTTOM, answerMargin );
+        gameConstraints.connect( 13, ConstraintSet.TOP, 12, ConstraintSet.BOTTOM, answerMargin );
+
+        gameConstraints.centerHorizontally( 10, 1 );
+        gameConstraints.constrainWidth( 10, (int) (scrW / 1.35f) );
+        gameConstraints.constrainHeight( 10, (int) (scrH / 1.8f) );
+        gameConstraints.applyTo( gameLayout );
+
+        final RelativeLayout.LayoutParams fill = new RelativeLayout.LayoutParams(
+            RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT );
+
+        layout.addView( gameLayout, fill );
+        gameLayout.setVisibility( View.GONE );
+
+        WhistlerActivity.this.gameLayout = gameLayout;
 
         return layout;
     }
@@ -147,7 +244,6 @@ public class WhistlerActivity extends BaseHQActivity
         Log.d( "HD4HQ", "Whistler activity is alive!" );
         doCreate( bundle );
     }
-
 
     @Override
     public void onPause()
@@ -177,9 +273,61 @@ public class WhistlerActivity extends BaseHQActivity
         bgMusic = playSound( "whistlerBed3.1" );
         if ( bgMusic != null )
             bgMusic.setLooping( true );
+    }
+
+    private void transitionAnswers()
+    {
+        long off = 0;
+        for ( WhistlerAnswerButtonView v : answerViews )
+        {
+            v.fadeIn( off );
+            off += 50;
+        }
+    }
+
+    private void startGame()
+    {
+        AlphaAnimation fadeOut = new AlphaAnimation( 1.0f, 0.0f );
+        fadeOut.setDuration( 200 );
+        fadeOut.setRepeatCount( 0 );
+        fadeOut.setAnimationListener( new Animation.AnimationListener()
+        {
+            @Override
+            public void onAnimationStart( Animation animation )
+            {
+            }
+
+            @Override
+            public void onAnimationEnd( Animation animation )
+            {
+                for ( View v : splashViews )
+                {
+                    v.setVisibility( View.GONE );
+                }
+                gameLayout.setVisibility( View.VISIBLE );
+                transitionAnswers();
+            }
+
+            @Override
+            public void onAnimationRepeat( Animation animation )
+            {
+            }
+        } );
+
+        for ( View v : splashViews )
+        {
+            v.startAnimation( fadeOut );
+        }
 
         Log.d( "HD4HQ", "whistler starting game" );
         Flowable<ApiWhistlerGame> game = getAuthedApi().whistlerStartGame();
-        game.subscribeOn( Schedulers.io() ).observeOn( AndroidSchedulers.mainThread() ).subscribe();
+        game.subscribeOn( Schedulers.io() ).observeOn( AndroidSchedulers.mainThread() ).subscribe( new Consumer<ApiWhistlerGame>()
+        {
+            @Override
+            public void accept( ApiWhistlerGame apiWhistlerGame ) throws Exception
+            {
+                Log.d( "HD4HQ", "whistler game id: " + apiWhistlerGame.getGameUuid() );
+            }
+        } );
     }
 }
