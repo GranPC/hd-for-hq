@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import com.granpc.hdforhq.models.ApiWhistlerAnswerResult;
 import com.granpc.hdforhq.models.ApiWhistlerGame;
+import com.granpc.hdforhq.views.WhistlerSubtitleView;
 
 import java.io.File;
 import java.util.Arrays;
@@ -88,7 +89,7 @@ public class WhistlerActivity extends BaseHQActivity
         dailyHeader.setGravity( Gravity.CENTER );
         hero.addView( dailyHeader );
 
-        TextView dailySubtitle = new TextView( thiz );
+        WhistlerSubtitleView dailySubtitle = new WhistlerSubtitleView( thiz );
         dailySubtitle.setText( "Answer trivia questions to win rewards!" );
         dailySubtitle.setTypeface( hqFont );
         dailySubtitle.setTextColor( Color.WHITE );
@@ -133,6 +134,9 @@ public class WhistlerActivity extends BaseHQActivity
         } );
 
         layout.addView( startButton, buttonLayout );
+
+        dailySubtitle.startAnimation();
+
         return layout;
     }
 
