@@ -76,6 +76,10 @@ public class BaseHQActivity
     {
     }
 
+    public void onPause()
+    {
+    }
+
     public void onResume()
     {
     }

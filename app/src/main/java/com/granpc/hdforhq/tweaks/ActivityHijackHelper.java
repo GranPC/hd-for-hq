@@ -37,10 +37,38 @@ public class ActivityHijackHelper implements IXposedHookLoadPackage
                 if ( BaseHQActivity.currentHijackActivity != null )
                 {
                     BaseHQActivity hijackActivity = BaseHQActivity.currentHijackActivity;
+                    XposedHelpers.setAdditionalInstanceField( param.thisObject, "HDHijackActivity", hijackActivity );
+
                     BaseHQActivity.currentHijackActivity = null;
                     hijackActivity.thiz = (Activity) param.thisObject;
                     hijackActivity.onCreate( (Bundle) param.args[ 0 ] );
                     param.setResult( null );
+                }
+            }
+        } );
+
+        findAndHookMethod( O.BaseInjectedActivity, lpparam.classLoader, "onPause", new XC_MethodHook()
+        {
+            @Override
+            protected void beforeHookedMethod( MethodHookParam param ) throws Throwable
+            {
+                BaseHQActivity hijackActivity = (BaseHQActivity) XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDHijackActivity" );
+                if ( hijackActivity != null )
+                {
+                    hijackActivity.onPause();
+                }
+            }
+        } );
+
+        findAndHookMethod( O.BaseInjectedActivity, lpparam.classLoader, "onResume", new XC_MethodHook()
+        {
+            @Override
+            protected void beforeHookedMethod( MethodHookParam param ) throws Throwable
+            {
+                BaseHQActivity hijackActivity = (BaseHQActivity) XposedHelpers.getAdditionalInstanceField( param.thisObject, "HDHijackActivity" );
+                if ( hijackActivity != null )
+                {
+                    hijackActivity.onResume();
                 }
             }
         } );

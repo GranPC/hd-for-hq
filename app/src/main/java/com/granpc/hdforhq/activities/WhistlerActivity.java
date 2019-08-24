@@ -144,9 +144,11 @@ public class WhistlerActivity extends BaseHQActivity
         doCreate( bundle );
     }
 
+
     @Override
-    public void onStop()
+    public void onPause()
     {
+        super.onPause();
         if ( bgMusic != null )
             bgMusic.pause();
     }
@@ -154,6 +156,7 @@ public class WhistlerActivity extends BaseHQActivity
     @Override
     public void onResume()
     {
+        super.onResume();
         if ( bgMusic != null )
             bgMusic.start();
     }
