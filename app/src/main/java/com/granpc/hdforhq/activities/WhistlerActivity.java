@@ -144,6 +144,20 @@ public class WhistlerActivity extends BaseHQActivity
         doCreate( bundle );
     }
 
+    @Override
+    public void onStop()
+    {
+        if ( bgMusic != null )
+            bgMusic.pause();
+    }
+
+    @Override
+    public void onResume()
+    {
+        if ( bgMusic != null )
+            bgMusic.start();
+    }
+
     public void doCreate( Bundle bundle )
     {
         thiz.getWindow().setFlags( WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS );

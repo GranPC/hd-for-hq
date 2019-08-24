@@ -72,6 +72,14 @@ public class BaseHQActivity
         v.setVisibility( View.GONE );
     }
 
+    public void onStop()
+    {
+    }
+
+    public void onResume()
+    {
+    }
+
     protected AuthedApi getAuthedApi()
     {
         // We always want to run in mock mode for now

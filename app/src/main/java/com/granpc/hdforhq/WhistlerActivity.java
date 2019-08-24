@@ -15,4 +15,18 @@ public class WhistlerActivity extends AppCompatActivity
         super.onCreate( savedInstanceState );
         activity.doCreate( savedInstanceState );
     }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        activity.onStop();
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        activity.onResume();
+    }
 }
