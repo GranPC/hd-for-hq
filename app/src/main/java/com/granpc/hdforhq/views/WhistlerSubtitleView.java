@@ -27,7 +27,7 @@ public class WhistlerSubtitleView extends AppCompatTextView
     private long animateStartMs;
 
     private static final PathInterpolator wordScaleInterpolator =
-        new PathInterpolator( 0.35f, 0.f, 0.65f, 1.4f );
+        new PathInterpolator( 0.35f, 0.f, 0.40f, 1.3f );
 
     private static final PathInterpolator wordPositionInterpolator =
         new PathInterpolator( 0.f, 0.f, 0.45f, 1.f );
@@ -87,10 +87,14 @@ public class WhistlerSubtitleView extends AppCompatTextView
             for ( int pos = layout.getLineStart( i ); pos < layout.getLineStart( i + 1 ); pos++ )
             {
                 long posAnimTime = SystemClock.uptimeMillis() - 100 * wordIdx - animateStartMs;
-                long posAnimLength = 200;
+                long posAnimLength = 250;
                 float posAnimPct = posAnimTime < 0 ? 0 : (float) posAnimTime / (float) posAnimLength;
                 if ( posAnimPct == 0 ) break; // this word is invisible - so all the other words are invisible too
                 if ( posAnimPct > 1.f ) posAnimPct = 1.f;
+
+                long scaleAnimLength = 350;
+                float scaleAnimPct = posAnimTime < 0 ? 0 : (float) posAnimTime / (float) scaleAnimLength;
+                if ( scaleAnimPct > 1.f ) scaleAnimPct = 1.f;
 
                 long colorAnimTime = SystemClock.uptimeMillis() - 150 * wordIdx - animateStartMs;
                 long colorAnimLength = 300;
@@ -115,10 +119,10 @@ public class WhistlerSubtitleView extends AppCompatTextView
                 paint.setColor( (int) colorInterpolator.evaluate( colorAnimPct, START_COLOR, END_COLOR ) );
 
                 float translatePct = 1.f - wordPositionInterpolator.getInterpolation( posAnimPct );
-                float tx = translatePct * (centerX - wordX - wordWidth / 2) * 0.7f;
-                float ty = translatePct * (centerY - wordY) * 0.6f;
+                float tx = translatePct * (centerX - wordX - wordWidth / 2) * 0.9f;
+                float ty = translatePct * (centerY - wordY) * 0.8f;
 
-                float scalePct = wordScaleInterpolator.getInterpolation( posAnimPct );
+                float scalePct = wordScaleInterpolator.getInterpolation( scaleAnimPct );
 
                 c.save();
                 c.translate( x, y );
