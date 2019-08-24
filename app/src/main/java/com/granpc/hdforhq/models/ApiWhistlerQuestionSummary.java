@@ -31,4 +31,49 @@ public final class ApiWhistlerQuestionSummary
         this.showAd = showAd;
         this.gameSummary = gameSummary;
     }
+
+    public int getSeasonXp()
+    {
+        return seasonXp;
+    }
+
+    public int getPointsEarned()
+    {
+        return pointsEarned;
+    }
+
+    public Boolean getYouGotItRight()
+    {
+        return youGotItRight;
+    }
+
+    public List<ApiWhistlerAnswerResult> getAnswerCounts()
+    {
+        return answerCounts;
+    }
+
+    public String getYourOffairAnswerId()
+    {
+        return yourOffairAnswerId;
+    }
+
+    public int getQuestionNumber()
+    {
+        return questionNumber;
+    }
+
+    public List<Boolean> getAnswerResults()
+    {
+        return answerResults;
+    }
+
+    public Boolean getShowAd()
+    {
+        return showAd;
+    }
+
+    public ApiWhistlerGameSummary getGameSummary()
+    {
+        return gameSummary;
+    }
 }

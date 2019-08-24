@@ -17,4 +17,24 @@ public final class ApiWhistlerAnswerResult
         this.answer = answer;
         this.correct = correct;
     }
+
+    public int getAnswerId()
+    {
+        return answerId;
+    }
+
+    public String getOffairAnswerId()
+    {
+        return offairAnswerId;
+    }
+
+    public String getAnswer()
+    {
+        return answer;
+    }
+
+    public Boolean getCorrect()
+    {
+        return correct;
+    }
 }

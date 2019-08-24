@@ -23,4 +23,34 @@ public final class ApiWhistlerGameSummary
         this.waitTimeMs = waitTimeMs;
         this.showAdToUnlock = showAdToUnlock;
     }
+
+    public int getCoinsEarned()
+    {
+        return coinsEarned;
+    }
+
+    public int getPointsEarned()
+    {
+        return pointsEarned;
+    }
+
+    public int getQuestionsCorrect()
+    {
+        return questionsCorrect;
+    }
+
+    public int getQuestionsIncorrect()
+    {
+        return questionsIncorrect;
+    }
+
+    public int getWaitTimeMs()
+    {
+        return waitTimeMs;
+    }
+
+    public Boolean getShowAdToUnlock()
+    {
+        return showAdToUnlock;
+    }
 }

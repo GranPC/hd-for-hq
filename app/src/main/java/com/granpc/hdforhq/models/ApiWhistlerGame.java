@@ -22,4 +22,34 @@ public final class ApiWhistlerGame
         this.answerResults = answerResults;
         this.category = category;
     }
+
+    public String getGameUuid()
+    {
+        return gameUuid;
+    }
+
+    public String getStatus()
+    {
+        return status;
+    }
+
+    public int getQuestionNumber()
+    {
+        return questionNumber;
+    }
+
+    public int getQuestionCount()
+    {
+        return questionCount;
+    }
+
+    public List<Boolean> getAnswerResults()
+    {
+        return answerResults;
+    }
+
+    public String getCategory()
+    {
+        return category;
+    }
 }
