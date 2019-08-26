@@ -172,38 +172,36 @@ public class WhistlerActivity extends BaseHQActivity
 
         AppCompatTextView questionLabel = new AppCompatTextView( thiz );
         questionLabel.setId( 10 );
-        questionLabel.setText( "Duck à l'Orange is a dish from which country?" );
+        questionLabel.setText( "What was the username of the early infamous YouTube “vlog” account that was revealed to be staged?" );
         questionLabel.setTypeface( hqFont );
         questionLabel.setTextColor( Color.WHITE );
-        questionLabel.setTextSize( TypedValue.COMPLEX_UNIT_SP, 18.f );
-        questionLabel.setLineSpacing( 0.0f, 1.2f );
-        questionLabel.setPadding( 0, spacing, 0, 0 );
+        questionLabel.setLineSpacing( 0.0f, 1.25f );
         questionLabel.setGravity( Gravity.CENTER );
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-            questionLabel, 14, 24, 2, TypedValue.COMPLEX_UNIT_SP );
+            questionLabel, 14, 26, 2, TypedValue.COMPLEX_UNIT_SP );
         gameLayout.addView( questionLabel, ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT );
 
         questionView = questionLabel;
 
         WhistlerAnswerButtonView answerA = new WhistlerAnswerButtonView( thiz );
         answerA.setId( 11 );
-        answerA.setText( "America" );
+        answerA.setText( "DailyGrace" );
         answerA.setTypeface( hqFont );
         answerViews.add( answerA );
 
         WhistlerAnswerButtonView answerB = new WhistlerAnswerButtonView( thiz );
         answerB.setId( 12 );
-        answerB.setText( "France" );
+        answerB.setText( "Jenny4U" );
         answerB.setTypeface( hqFont );
         answerViews.add( answerB );
 
         WhistlerAnswerButtonView answerC = new WhistlerAnswerButtonView( thiz );
         answerC.setId( 13 );
-        answerC.setText( "Russia" );
+        answerC.setText( "Lonelygirl15" );
         answerC.setTypeface( hqFont );
         answerViews.add( answerC );
 
-        final int answerHeight = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 56, thiz.getResources().getDisplayMetrics() );
+        final int answerHeight = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 64, thiz.getResources().getDisplayMetrics() );
         final int answerMargin = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 8, thiz.getResources().getDisplayMetrics() );
         gameLayout.addView( answerA, ConstraintLayout.LayoutParams.WRAP_CONTENT );
         gameLayout.addView( answerB, ConstraintLayout.LayoutParams.WRAP_CONTENT );

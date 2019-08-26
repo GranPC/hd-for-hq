@@ -41,7 +41,7 @@ public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnC
         setOnClickListener( this );
 
         float[] borderRadius = new float[8];
-        float radius = TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 30, getResources().getDisplayMetrics() );
+        float radius = TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 32, getResources().getDisplayMetrics() );
         Arrays.fill( borderRadius, radius );
         RoundRectShape r = new RoundRectShape( borderRadius, null, null );
         ShapeDrawable buttonShape = new ShapeDrawable( r );
