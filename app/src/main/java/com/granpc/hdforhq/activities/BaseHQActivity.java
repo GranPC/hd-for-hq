@@ -12,11 +12,13 @@ import android.view.View;
 import com.granpc.hdforhq.api.AuthedApi;
 import com.granpc.hdforhq.deobfuscation.HQR;
 import com.granpc.hdforhq.deobfuscation.O;
+import com.granpc.hdforhq.network.HDHeaderInterceptor;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 import java.lang.reflect.Method;
 
 import de.robv.android.xposed.XposedHelpers;
+import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.moshi.MoshiConverterFactory;
 
@@ -92,7 +94,12 @@ public class BaseHQActivity
             Log.w( "HD4HQ", "getAuthedApi: running in mock mode" );
             if (api == null)
             {
+                OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor( new HDHeaderInterceptor() )
+                    .build();
+
                 Retrofit retrofit = new Retrofit.Builder()
+                    .client( client )
                     .baseUrl( "http://192.168.1.81:8047" )
                     .addCallAdapterFactory( RxJava2CallAdapterFactory.create() )
                     .addConverterFactory( MoshiConverterFactory.create() )
