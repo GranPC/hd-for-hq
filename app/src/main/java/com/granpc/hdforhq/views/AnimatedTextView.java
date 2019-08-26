@@ -72,7 +72,7 @@ public class AnimatedTextView extends AppCompatTextView
 
             if ( getGravity() == Gravity.CENTER )
             {
-                y += layout.getLineTop( layout.getLineCount() ) / 2;
+                y += getHeight() / 2 - layout.getLineTop( layout.getLineCount() ) / 2;
             }
 
             for ( int pos = layout.getLineStart( i ); pos < layout.getLineStart( i + 1 ); pos++ )
