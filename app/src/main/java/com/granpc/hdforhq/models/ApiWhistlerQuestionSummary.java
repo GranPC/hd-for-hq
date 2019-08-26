@@ -4,7 +4,7 @@ import java.util.List;
 
 public final class ApiWhistlerQuestionSummary
 {
-    private final int seasonXp;
+    private final ApiSeasonXp seasonXp;
     private final int pointsEarned;
     private final Boolean youGotItRight;
     private final List<ApiWhistlerAnswerResult> answerCounts;
@@ -15,7 +15,7 @@ public final class ApiWhistlerQuestionSummary
     private final Boolean showAd;
     private final ApiWhistlerGameSummary gameSummary;
 
-    public ApiWhistlerQuestionSummary( int seasonXp, int pointsEarned, Boolean youGotItRight,
+    public ApiWhistlerQuestionSummary( ApiSeasonXp seasonXp, int pointsEarned, Boolean youGotItRight,
                                        List<ApiWhistlerAnswerResult> answerCounts,
                                        String yourOffairAnswerId, int questionNumber,
                                        List<Boolean> answerResults, Boolean showAd,
@@ -32,7 +32,7 @@ public final class ApiWhistlerQuestionSummary
         this.gameSummary = gameSummary;
     }
 
-    public int getSeasonXp()
+    public ApiSeasonXp getSeasonXp()
     {
         return seasonXp;
     }
