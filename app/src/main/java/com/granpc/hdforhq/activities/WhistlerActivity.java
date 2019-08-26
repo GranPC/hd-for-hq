@@ -32,8 +32,12 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.granpc.hdforhq.interfaces.WhistlerAnswerListener;
 import com.granpc.hdforhq.models.ApiWhistlerAnswerResult;
 import com.granpc.hdforhq.models.ApiWhistlerGame;
+import com.granpc.hdforhq.models.ApiWhistlerQuestion;
+import com.granpc.hdforhq.models.ApiWhistlerQuestionSummary;
+import com.granpc.hdforhq.models.ApiWhistlerRound;
 import com.granpc.hdforhq.views.WhistlerAnswerButtonView;
 import com.granpc.hdforhq.views.WhistlerQuestionTextView;
 import com.granpc.hdforhq.views.WhistlerSubtitleView;
@@ -49,7 +53,7 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
-public class WhistlerActivity extends BaseHQActivity
+public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerListener
 {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private MediaPlayer bgMusic;
@@ -58,6 +62,8 @@ public class WhistlerActivity extends BaseHQActivity
     private ConstraintLayout gameLayout;
     private WhistlerQuestionTextView questionView;
     private List<WhistlerAnswerButtonView> answerViews = new ArrayList<WhistlerAnswerButtonView>();
+
+    private ApiWhistlerGame currentGame;
 
     public WhistlerActivity()
     {
@@ -202,6 +208,10 @@ public class WhistlerActivity extends BaseHQActivity
         answerC.setTypeface( hqFont );
         answerViews.add( answerC );
 
+        answerA.setAnswerListener( this );
+        answerB.setAnswerListener( this );
+        answerC.setAnswerListener( this );
+
         final int answerHeight = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 64, thiz.getResources().getDisplayMetrics() );
         final int answerMargin = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 8, thiz.getResources().getDisplayMetrics() );
         gameLayout.addView( answerA, ConstraintLayout.LayoutParams.WRAP_CONTENT );
@@ -274,6 +284,43 @@ public class WhistlerActivity extends BaseHQActivity
             bgMusic.setLooping( true );
     }
 
+    private void displayQuestion( ApiWhistlerQuestion question )
+    {
+        gameLayout.setVisibility( View.VISIBLE );
+        questionView.setText( question.getQuestion() );
+        questionView.startAnimation();
+
+        int i = 0;
+        for ( WhistlerAnswerButtonView v : answerViews )
+        {
+            v.setText( question.getAnswers().get( i ).getText() );
+            v.setOffairAnswerId( question.getAnswers().get( i ).getOffairAnswerId() );
+            i++;
+            if ( i > 2 ) break; // hmm?
+        }
+        transitionAnswers();
+    }
+
+    @Override
+    public void onAnswerTapped( String offairAnswerId )
+    {
+        Log.d( "HD4HQ", "answer tapped!" );
+        for ( WhistlerAnswerButtonView v : answerViews )
+        {
+            v.setEnabled( false );
+        }
+
+        Flowable<ApiWhistlerQuestionSummary> summary = getAuthedApi().whistlerSubmitAnswer( currentGame.getGameUuid() /*, offairAnswerId */ );
+        summary.subscribeOn( Schedulers.io() ).observeOn( AndroidSchedulers.mainThread() ).subscribe( new Consumer<ApiWhistlerQuestionSummary>()
+        {
+            @Override
+            public void accept( ApiWhistlerQuestionSummary apiWhistlerSummary ) throws Exception
+            {
+                // displayQuestion( apiWhistlerRound.getQuestion() );
+            }
+        } );
+    }
+
     private void transitionAnswers()
     {
         long off = 300;
@@ -284,9 +331,22 @@ public class WhistlerActivity extends BaseHQActivity
         }
     }
 
+    private void fetchNextRound()
+    {
+        Flowable<ApiWhistlerRound> round = getAuthedApi().whistlerNextRound( currentGame.getGameUuid() );
+        round.subscribeOn( Schedulers.io() ).observeOn( AndroidSchedulers.mainThread() ).subscribe( new Consumer<ApiWhistlerRound>()
+        {
+            @Override
+            public void accept( ApiWhistlerRound apiWhistlerRound ) throws Exception
+            {
+                displayQuestion( apiWhistlerRound.getQuestion() );
+            }
+        } );
+    }
+
     private void startGame()
     {
-        AlphaAnimation fadeOut = new AlphaAnimation( 1.0f, 0.0f );
+        final AlphaAnimation fadeOut = new AlphaAnimation( 1.0f, 0.0f );
         fadeOut.setDuration( 200 );
         fadeOut.setRepeatCount( 0 );
         fadeOut.setAnimationListener( new Animation.AnimationListener()
@@ -303,9 +363,6 @@ public class WhistlerActivity extends BaseHQActivity
                 {
                     v.setVisibility( View.GONE );
                 }
-                gameLayout.setVisibility( View.VISIBLE );
-                questionView.startAnimation();
-                transitionAnswers();
             }
 
             @Override
@@ -327,6 +384,8 @@ public class WhistlerActivity extends BaseHQActivity
             public void accept( ApiWhistlerGame apiWhistlerGame ) throws Exception
             {
                 Log.d( "HD4HQ", "whistler game id: " + apiWhistlerGame.getGameUuid() );
+                currentGame = apiWhistlerGame;
+                fetchNextRound();
             }
         } );
     }
