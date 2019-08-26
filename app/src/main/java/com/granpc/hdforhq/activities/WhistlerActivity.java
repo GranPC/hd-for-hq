@@ -301,6 +301,40 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
         transitionAnswers();
     }
 
+    private void processQuestionSummary( ApiWhistlerQuestionSummary summary )
+    {
+        String sound = "incorrect-general";
+        String correctAnswer = null;
+        String incorrectAnswer = summary.getYourOffairAnswerId();
+
+        if ( summary.getYouGotItRight() )
+        {
+            sound = "correct-general";
+            incorrectAnswer = null;
+        }
+
+        for ( ApiWhistlerAnswerResult answer : summary.getAnswerCounts() )
+        {
+            if ( answer.getCorrect() )
+            {
+                correctAnswer = answer.getOffairAnswerId();
+            }
+        }
+        playSound( sound );
+
+        for ( WhistlerAnswerButtonView v : answerViews )
+        {
+            if ( v.getOffairAnswerId().equals( correctAnswer ) )
+            {
+                v.transitionCorrect();
+            }
+            if ( incorrectAnswer != null && v.getOffairAnswerId().equals( incorrectAnswer ) )
+            {
+                v.transitionIncorrect();
+            }
+        }
+    }
+
     @Override
     public void onAnswerTapped( String offairAnswerId )
     {
@@ -316,7 +350,7 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
             @Override
             public void accept( ApiWhistlerQuestionSummary apiWhistlerSummary ) throws Exception
             {
-                // displayQuestion( apiWhistlerRound.getQuestion() );
+                processQuestionSummary( apiWhistlerSummary );
             }
         } );
     }

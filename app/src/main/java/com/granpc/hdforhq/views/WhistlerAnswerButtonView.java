@@ -6,11 +6,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.AppCompatTextView;
+import android.transition.Transition;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -37,25 +41,39 @@ public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnC
     private Typeface typeface;
     private AppCompatTextView textView;
 
-    private ShapeDrawable buttonShape;
+    private ShapeDrawable defaultBackground;
+    private ShapeDrawable incorrectBackground;
+    private ShapeDrawable correctBackground;
+
+    private RippleDrawable rippleBackground;
 
     private WhistlerAnswerListener answerListener;
+
+    private ShapeDrawable createShape( int color )
+    {
+        float[] borderRadius = new float[8];
+        float radius = TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 32, getResources().getDisplayMetrics() );
+        Arrays.fill( borderRadius, radius );
+        RoundRectShape r = new RoundRectShape( borderRadius, null, null );
+        ShapeDrawable shape = new ShapeDrawable( r );
+        shape.getPaint().setStrokeWidth( TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics() ) );
+        shape.getPaint().setColor( color );
+        return shape;
+    }
 
     public WhistlerAnswerButtonView( Context context )
     {
         super( context );
         setOnClickListener( this );
 
-        float[] borderRadius = new float[8];
-        float radius = TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 32, getResources().getDisplayMetrics() );
-        Arrays.fill( borderRadius, radius );
-        RoundRectShape r = new RoundRectShape( borderRadius, null, null );
-        buttonShape = new ShapeDrawable( r );
-        buttonShape.getPaint().setStyle( Paint.Style.STROKE );
-        buttonShape.getPaint().setStrokeWidth( TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics() ) );
-        buttonShape.getPaint().setColor( 0xFF6C6FD5 );
-        RippleDrawable rippleDrawable = new RippleDrawable( ColorStateList.valueOf( 0xFFEEEEEE ), buttonShape, buttonShape );
-        setBackground( rippleDrawable );
+        defaultBackground = createShape( 0xFF6C6FD5 );
+        defaultBackground.getPaint().setStyle( Paint.Style.STROKE );
+        correctBackground = createShape( 0xff4ac38c );
+        incorrectBackground = createShape( 0xffe52465 );
+
+        rippleBackground = new RippleDrawable( ColorStateList.valueOf( 0xFFEEEEEE ), defaultBackground, defaultBackground );
+        setBackground( rippleBackground );
+
         setClipToOutline( true );
 
         textView = new AppCompatTextView( getContext() );
@@ -122,17 +140,43 @@ public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnC
         startAnimation( set );
     }
 
+    private void transitionBackground( ShapeDrawable from, ShapeDrawable to )
+    {
+        ShapeDrawable[] drawables = { from, to };
+        TransitionDrawable bg = new TransitionDrawable( drawables );
+        bg.startTransition( 150 );
+        setBackground( bg );
+    }
+
+    public void transitionCorrect()
+    {
+        Log.d( "HD4HQ", "hell yeah ur right" );
+        transitionBackground( defaultBackground, correctBackground );
+    }
+
+    public void transitionIncorrect()
+    {
+        transitionBackground( defaultBackground, incorrectBackground );
+    }
+
     @Override
     public void onClick( View v )
     {
         if ( !isEnabled() ) return;
 
-        buttonShape.getPaint().setStyle( Paint.Style.FILL_AND_STROKE );
+        defaultBackground.getPaint().setStyle( Paint.Style.FILL_AND_STROKE );
 
         if ( answerListener != null )
         {
             answerListener.onAnswerTapped( offairAnswerId );
         }
+    }
+
+    public void reset()
+    {
+        defaultBackground.getPaint().setStyle( Paint.Style.STROKE );
+        setBackground( rippleBackground );
+        setEnabled( true );
     }
 
     public WhistlerAnswerListener getAnswerListener()
