@@ -22,6 +22,8 @@ import android.view.animation.PathInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.RelativeLayout;
 
+import com.granpc.hdforhq.interfaces.WhistlerAnswerListener;
+
 import java.util.Arrays;
 
 public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnClickListener
@@ -31,9 +33,13 @@ public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnC
     private int fadeInYOffset;
 
     private CharSequence text;
-    private int answerId;
+    private String offairAnswerId;
     private Typeface typeface;
     private AppCompatTextView textView;
+
+    private ShapeDrawable buttonShape;
+
+    private WhistlerAnswerListener answerListener;
 
     public WhistlerAnswerButtonView( Context context )
     {
@@ -44,7 +50,7 @@ public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnC
         float radius = TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 32, getResources().getDisplayMetrics() );
         Arrays.fill( borderRadius, radius );
         RoundRectShape r = new RoundRectShape( borderRadius, null, null );
-        ShapeDrawable buttonShape = new ShapeDrawable( r );
+        buttonShape = new ShapeDrawable( r );
         buttonShape.getPaint().setStyle( Paint.Style.STROKE );
         buttonShape.getPaint().setStrokeWidth( TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics() ) );
         buttonShape.getPaint().setColor( 0xFF6C6FD5 );
@@ -73,14 +79,14 @@ public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnC
         textView.setText( text );
     }
 
-    public int getAnswerId()
+    public String getOffairAnswerId()
     {
-        return answerId;
+        return offairAnswerId;
     }
 
-    public void setAnswerId( int answerId )
+    public void setOffairAnswerId( String offairAnswerId )
     {
-        this.answerId = answerId;
+        this.offairAnswerId = offairAnswerId;
     }
 
     public Typeface getTypeface()
@@ -119,6 +125,23 @@ public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnC
     @Override
     public void onClick( View v )
     {
+        if ( !isEnabled() ) return;
 
+        buttonShape.getPaint().setStyle( Paint.Style.FILL_AND_STROKE );
+
+        if ( answerListener != null )
+        {
+            answerListener.onAnswerTapped( offairAnswerId );
+        }
+    }
+
+    public WhistlerAnswerListener getAnswerListener()
+    {
+        return answerListener;
+    }
+
+    public void setAnswerListener( WhistlerAnswerListener answerListener )
+    {
+        this.answerListener = answerListener;
     }
 }
