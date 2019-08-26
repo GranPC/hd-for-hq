@@ -12,6 +12,7 @@ import android.view.View;
 import com.granpc.hdforhq.api.AuthedApi;
 import com.granpc.hdforhq.deobfuscation.HQR;
 import com.granpc.hdforhq.deobfuscation.O;
+import com.granpc.hdforhq.network.AuthInterceptor;
 import com.granpc.hdforhq.network.HDHeaderInterceptor;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
@@ -89,7 +90,7 @@ public class BaseHQActivity
     protected AuthedApi getAuthedApi()
     {
         // We always want to run in mock mode for now
-        if ( isMock || true )
+        if ( isMock )
         {
             Log.w( "HD4HQ", "getAuthedApi: running in mock mode" );
             if (api == null)
@@ -111,17 +112,24 @@ public class BaseHQActivity
             return api;
         }
 
-        try
+        Log.w( "HD4HQ", "getAuthedApi: connecting to the real API" );
+        if (api == null)
         {
-            Object authedApi = baseGetAuthedApi.invoke( thiz );
-            Log.d( "HD4HQ", "Authed API is " + authedApi.getClass().getPackage() + " / " + authedApi.getClass().getCanonicalName() );
-            return null;
-        }
-        catch ( Exception e )
-        {
-            Log.wtf( "HD4HQ", "Failed to invoke getAuthedApi: " + e.toString() );
+            OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor( new HDHeaderInterceptor() )
+                .addInterceptor( new AuthInterceptor() )
+                .build();
+
+            Retrofit retrofit = new Retrofit.Builder()
+                .client( client )
+                .baseUrl( "https://api-quiz.hype.space" )
+                .addCallAdapterFactory( RxJava2CallAdapterFactory.create() )
+                .addConverterFactory( MoshiConverterFactory.create() )
+                .build();
+
+            api = retrofit.create( AuthedApi.class );
         }
 
-        return null;
+        return api;
     }
 }
