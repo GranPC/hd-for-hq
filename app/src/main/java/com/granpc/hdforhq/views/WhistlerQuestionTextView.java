@@ -5,7 +5,11 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.SystemClock;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
 import android.view.animation.PathInterpolator;
+import android.view.animation.TranslateAnimation;
 
 public class WhistlerQuestionTextView extends AnimatedTextView
 {
@@ -15,6 +19,9 @@ public class WhistlerQuestionTextView extends AnimatedTextView
 
     private static final PathInterpolator wordPositionInterpolator =
         new PathInterpolator( 0.f, 0.f, 0.f, 1.f );
+
+    private static final PathInterpolator fadeAlphaInterpolator =
+        new PathInterpolator( 0.f, 0.f, 0.f, 1.00f );
 
     public WhistlerQuestionTextView( Context context )
     {
@@ -45,5 +52,35 @@ public class WhistlerQuestionTextView extends AnimatedTextView
         c.drawText( text, index, count, x, y + ty, paint );
 
         return colorAnimPct >= 1.f && posAnimPct >= 1.f;
+    }
+
+    public void fadeOut( long off )
+    {
+        AlphaAnimation fadeOut = new AlphaAnimation( 1.f, 0.f );
+        fadeOut.setDuration( 500 );
+        fadeOut.setInterpolator( fadeAlphaInterpolator );
+        fadeOut.setRepeatCount( 0 );
+        fadeOut.setStartOffset( off );
+
+        fadeOut.setAnimationListener( new Animation.AnimationListener()
+        {
+            @Override
+            public void onAnimationStart( Animation animation )
+            {
+            }
+
+            @Override
+            public void onAnimationEnd( Animation animation )
+            {
+                setAlpha( 0.f );
+            }
+
+            @Override
+            public void onAnimationRepeat( Animation animation )
+            {
+            }
+        } );
+
+        startAnimation( fadeOut );
     }
 }

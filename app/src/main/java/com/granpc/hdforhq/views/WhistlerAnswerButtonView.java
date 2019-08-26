@@ -118,26 +118,55 @@ public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnC
         textView.setTypeface( typeface );
     }
 
-    public void fadeIn( long off )
+    private void fade( long off, float from, final float to, boolean shouldTranslate )
     {
         AnimationSet set = new AnimationSet( false );
 
-        AlphaAnimation fadeIn = new AlphaAnimation( 0.f, 1.0f );
-        fadeIn.setDuration( 800 );
-        fadeIn.setInterpolator( fadeAlphaInterpolator );
-        fadeIn.setRepeatCount( 0 );
-        set.addAnimation( fadeIn );
+        AlphaAnimation fadeAnim = new AlphaAnimation( from, to );
+        fadeAnim.setDuration( 800 );
+        fadeAnim.setInterpolator( fadeAlphaInterpolator );
+        fadeAnim.setRepeatCount( 0 );
+        set.addAnimation( fadeAnim );
 
         TranslateAnimation translate = new TranslateAnimation( 0, 0, fadeInYOffset, 0 );
         translate.setDuration( 800 );
         translate.setInterpolator( fadeAlphaInterpolator );
         translate.setRepeatCount( 0 );
-        set.addAnimation( translate );
+        if ( shouldTranslate )
+            set.addAnimation( translate );
 
         set.setRepeatCount( 0 );
         set.setStartOffset( off );
 
+        set.setAnimationListener( new Animation.AnimationListener()
+        {
+            @Override
+            public void onAnimationStart( Animation animation )
+            {
+            }
+
+            @Override
+            public void onAnimationEnd( Animation animation )
+            {
+                setAlpha( to );
+            }
+
+            @Override
+            public void onAnimationRepeat( Animation animation )
+            {
+            }
+        } );
         startAnimation( set );
+    }
+
+    public void fadeIn( long off )
+    {
+        fade( off, 0.f, 1.f, true );
+    }
+
+    public void fadeOut( long off )
+    {
+        fade( off, 1.f, 0.f, false );
     }
 
     private void transitionBackground( ShapeDrawable from, ShapeDrawable to )
@@ -177,6 +206,7 @@ public class WhistlerAnswerButtonView extends RelativeLayout implements View.OnC
         defaultBackground.getPaint().setStyle( Paint.Style.STROKE );
         setBackground( rippleBackground );
         setEnabled( true );
+        setAlpha( 1.f );
     }
 
     public WhistlerAnswerListener getAnswerListener()

@@ -11,6 +11,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -33,6 +34,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.granpc.hdforhq.interfaces.WhistlerAnswerListener;
+import com.granpc.hdforhq.models.ApiOutgoingWhistlerAnswer;
 import com.granpc.hdforhq.models.ApiWhistlerAnswerResult;
 import com.granpc.hdforhq.models.ApiWhistlerGame;
 import com.granpc.hdforhq.models.ApiWhistlerQuestion;
@@ -289,12 +291,14 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
         gameLayout.setVisibility( View.VISIBLE );
         questionView.setText( question.getQuestion() );
         questionView.startAnimation();
+        questionView.setAlpha( 1.f );
 
         int i = 0;
         for ( WhistlerAnswerButtonView v : answerViews )
         {
             v.setText( question.getAnswers().get( i ).getText() );
             v.setOffairAnswerId( question.getAnswers().get( i ).getOffairAnswerId() );
+            v.reset();
             i++;
             if ( i > 2 ) break; // hmm?
         }
@@ -333,6 +337,34 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
                 v.transitionIncorrect();
             }
         }
+
+        // TODO: show points, etc
+        Handler pointsDelay = new Handler();
+        pointsDelay.postDelayed( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                resetGameView();
+            }
+        }, 3000 );
+
+        if ( summary.getGameSummary() == null )
+        {
+            Handler blankScreenDelay = new Handler();
+            blankScreenDelay.postDelayed( new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    fetchNextRound();
+                }
+            }, 4500 );
+        }
+        else
+        {
+            Log.d( "HD4HQ", "Whistler: game over!" );
+        }
     }
 
     @Override
@@ -344,7 +376,7 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
             v.setEnabled( false );
         }
 
-        Flowable<ApiWhistlerQuestionSummary> summary = getAuthedApi().whistlerSubmitAnswer( currentGame.getGameUuid() /*, offairAnswerId */ );
+        Flowable<ApiWhistlerQuestionSummary> summary = getAuthedApi().whistlerSubmitAnswer( currentGame.getGameUuid(), new ApiOutgoingWhistlerAnswer( offairAnswerId ) );
         summary.subscribeOn( Schedulers.io() ).observeOn( AndroidSchedulers.mainThread() ).subscribe( new Consumer<ApiWhistlerQuestionSummary>()
         {
             @Override
@@ -353,6 +385,18 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
                 processQuestionSummary( apiWhistlerSummary );
             }
         } );
+    }
+
+    private void resetGameView()
+    {
+        questionView.fadeOut( 0 );
+
+        long off = 150;
+        for ( WhistlerAnswerButtonView v : answerViews )
+        {
+            v.fadeOut( off );
+            off += 150;
+        }
     }
 
     private void transitionAnswers()
