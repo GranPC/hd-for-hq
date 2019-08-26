@@ -35,6 +35,7 @@ import android.widget.TextView;
 import com.granpc.hdforhq.models.ApiWhistlerAnswerResult;
 import com.granpc.hdforhq.models.ApiWhistlerGame;
 import com.granpc.hdforhq.views.WhistlerAnswerButtonView;
+import com.granpc.hdforhq.views.WhistlerQuestionTextView;
 import com.granpc.hdforhq.views.WhistlerSubtitleView;
 
 import java.io.File;
@@ -55,7 +56,7 @@ public class WhistlerActivity extends BaseHQActivity
     private List<View> splashViews = new ArrayList<View>();
 
     private ConstraintLayout gameLayout;
-    private TextView questionView;
+    private WhistlerQuestionTextView questionView;
     private List<WhistlerAnswerButtonView> answerViews = new ArrayList<WhistlerAnswerButtonView>();
 
     public WhistlerActivity()
@@ -113,7 +114,7 @@ public class WhistlerActivity extends BaseHQActivity
         dailySubtitle.setTextColor( Color.WHITE );
         dailySubtitle.setTextSize( TypedValue.COMPLEX_UNIT_SP, 18.f );
         dailySubtitle.setLineSpacing( 0.0f, 1.2f );
-        dailySubtitle.setGravity( Gravity.CENTER );
+        dailySubtitle.setGravity( Gravity.CENTER_HORIZONTAL );
         int spacing = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 25, thiz.getResources().getDisplayMetrics() );
         dailySubtitle.setPadding( 0, spacing, 0, 0 );
         hero.addView( dailySubtitle, (int) (scrW / 1.8f), LinearLayout.LayoutParams.WRAP_CONTENT );
@@ -170,7 +171,7 @@ public class WhistlerActivity extends BaseHQActivity
         ConstraintLayout gameLayout = new ConstraintLayout( thiz );
         gameLayout.setId( 1 );
 
-        AppCompatTextView questionLabel = new AppCompatTextView( thiz );
+        WhistlerQuestionTextView questionLabel = new WhistlerQuestionTextView( thiz );
         questionLabel.setId( 10 );
         questionLabel.setText( "What was the username of the early infamous YouTube “vlog” account that was revealed to be staged?" );
         questionLabel.setTypeface( hqFont );
@@ -275,11 +276,11 @@ public class WhistlerActivity extends BaseHQActivity
 
     private void transitionAnswers()
     {
-        long off = 0;
+        long off = 300;
         for ( WhistlerAnswerButtonView v : answerViews )
         {
             v.fadeIn( off );
-            off += 50;
+            off += 80;
         }
     }
 
@@ -303,6 +304,7 @@ public class WhistlerActivity extends BaseHQActivity
                     v.setVisibility( View.GONE );
                 }
                 gameLayout.setVisibility( View.VISIBLE );
+                questionView.startAnimation();
                 transitionAnswers();
             }
 

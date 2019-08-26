@@ -8,6 +8,8 @@ import android.os.SystemClock;
 import android.support.v7.widget.AppCompatTextView;
 import android.text.Layout;
 import android.text.TextPaint;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.animation.PathInterpolator;
 
 public class AnimatedTextView extends AppCompatTextView
@@ -35,11 +37,14 @@ public class AnimatedTextView extends AppCompatTextView
         return true;
     }
 
+    @Override
     protected void onDraw( Canvas c )
     {
         TextPaint paint = getPaint();
         paint.setColor( getCurrentTextColor() );
         paint.drawableState = getDrawableState();
+
+        onPreDraw();
 
         Layout layout = getLayout();
 
@@ -64,6 +69,11 @@ public class AnimatedTextView extends AppCompatTextView
 
             x = (getWidth() - textW) / 2;
             y = getPaddingTop() + layout.getLineTop( i + 1 ) - layout.getLineDescent( i );
+
+            if ( getGravity() == Gravity.CENTER )
+            {
+                y += layout.getLineTop( layout.getLineCount() ) / 2;
+            }
 
             for ( int pos = layout.getLineStart( i ); pos < layout.getLineStart( i + 1 ); pos++ )
             {
