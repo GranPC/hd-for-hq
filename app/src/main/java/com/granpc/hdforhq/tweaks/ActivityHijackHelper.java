@@ -25,7 +25,6 @@ public class ActivityHijackHelper implements IXposedHookLoadPackage
         BaseHQActivity.hijackedActivity = XposedHelpers.findClass( baseActivity, lpparam.classLoader );
         BaseHQActivity.baseOnCreate = XposedHelpers.findMethodExact( O.BaseInjectedActivity, lpparam.classLoader, "onCreate", Bundle.class );
         BaseHQActivity.baseGetSupportActionBar = XposedHelpers.findMethodExact( O.AppCompatActivity, lpparam.classLoader, "getSupportActionBar" );
-        BaseHQActivity.baseGetAuthedApi = XposedHelpers.findMethodExact( O.BaseInjectedActivity, lpparam.classLoader, O.BaseInjectedActivity_getAuthedApi );
 
         findAndHookMethod( baseActivity, lpparam.classLoader,
             "onCreate", Bundle.class, new XC_MethodHook()
@@ -41,6 +40,11 @@ public class ActivityHijackHelper implements IXposedHookLoadPackage
                     BaseHQActivity.currentHijackActivity = null;
                     hijackActivity.thiz = (Activity) param.thisObject;
                     hijackActivity.onCreate( (Bundle) param.args[ 0 ] );
+
+                    Object userRepository = XposedHelpers.callMethod( hijackActivity.thiz, O.BaseInjectedActivity_getUserRepository );
+                    Object sessionManager = XposedHelpers.getObjectField( userRepository, O.UserRepository_sessionManager );
+                    hijackActivity.setBearerToken( (String) XposedHelpers.callMethod( sessionManager, O.SessionManager_getBearerToken ) );
+
                     param.setResult( null );
                 }
             }

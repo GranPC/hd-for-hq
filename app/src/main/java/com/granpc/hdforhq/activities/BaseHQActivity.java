@@ -29,13 +29,13 @@ public class BaseHQActivity
     public static BaseHQActivity currentHijackActivity;
     public static Method baseOnCreate;
     public static Method baseGetSupportActionBar;
-    public static Method baseGetAuthedApi;
     public Activity thiz;
 
     protected Typeface hqFont;
     protected Boolean isMock = true;
 
     private AuthedApi api;
+    protected String bearerToken;
 
     public static void launchActivity( BaseHQActivity impl, Context ctx )
     {
@@ -115,7 +115,7 @@ public class BaseHQActivity
         {
             OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor( new HDHeaderInterceptor() )
-                .addInterceptor( new AuthInterceptor() )
+                .addInterceptor( new AuthInterceptor( bearerToken ) )
                 .build();
 
             Retrofit retrofit = new Retrofit.Builder()
@@ -129,5 +129,10 @@ public class BaseHQActivity
         }
 
         return api;
+    }
+
+    public void setBearerToken( String bearerToken )
+    {
+        this.bearerToken = bearerToken;
     }
 }
