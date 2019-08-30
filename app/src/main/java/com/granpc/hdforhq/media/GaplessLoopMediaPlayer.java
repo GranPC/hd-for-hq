@@ -22,6 +22,8 @@ public class GaplessLoopMediaPlayer implements MediaPlayer.OnCompletionListener
             currentPlayer = MediaPlayer.create( context, Uri.fromFile( file ) );
             nextPlayer = MediaPlayer.create( context, Uri.fromFile( file ) );
 
+            if ( !isValid() ) return;
+
             try
             {
                 currentPlayer.prepareAsync();
