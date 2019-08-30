@@ -29,7 +29,6 @@ public class BaseHQActivity
     public static BaseHQActivity currentHijackActivity;
     public static Method baseOnCreate;
     public static Method baseGetSupportActionBar;
-    public static Method supportActionBarHide;
     public static Method baseGetAuthedApi;
     public Activity thiz;
 
@@ -54,7 +53,6 @@ public class BaseHQActivity
         {
             baseOnCreate.invoke( thiz, bundle );
             actionBar = baseGetSupportActionBar.invoke( thiz );
-            supportActionBarHide.invoke( actionBar );
         }
         catch ( Exception e )
         {
