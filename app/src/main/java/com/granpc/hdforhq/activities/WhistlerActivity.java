@@ -60,6 +60,10 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
 {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private GaplessLoopMediaPlayer bgMusic;
+    private MediaPlayer countdownSound;
+    private MediaPlayer correctSound;
+    private MediaPlayer incorrectSound;
+
     private List<View> splashViews = new ArrayList<View>();
 
     private ConstraintLayout gameLayout;
@@ -232,18 +236,13 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
         return layout;
     }
 
-    private MediaPlayer playSound( String name )
+    private MediaPlayer loadSound( String name )
     {
         File f = new File( Environment.getExternalStorageDirectory().getPath() + "/HD4HQ/res/sfx/" + name + ".mp3" );
 
         if ( f.exists() )
         {
-            MediaPlayer player = MediaPlayer.create( thiz, Uri.fromFile( f ) );
-            if ( player != null )
-            {
-                player.start();
-                return player;
-            }
+            return MediaPlayer.create( thiz, Uri.fromFile( f ) );
         }
 
         return null;
@@ -289,8 +288,13 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
         thiz.getWindow().setStatusBarColor( Color.TRANSPARENT );
         thiz.setContentView( generateLayout() );
 
-        playSound( "whistlerSplash1.0" );
+        MediaPlayer splash = loadSound( "whistlerSplash1.0" );
+        if ( splash != null ) splash.start();
+
         bgMusic = playLoopingSound( "whistlerBed3.1" );
+        correctSound = loadSound( "correct-general" );
+        incorrectSound = loadSound( "incorrect-general" );
+        countdownSound = loadSound( "whistlerTimer1.2" );
     }
 
     private void displayQuestion( ApiWhistlerQuestion question )
@@ -299,6 +303,8 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
         questionView.setText( question.getQuestion() );
         questionView.startAnimation();
         questionView.setAlpha( 1.f );
+
+        if ( countdownSound != null ) countdownSound.start();
 
         int i = 0;
         for ( WhistlerAnswerButtonView v : answerViews )
@@ -314,13 +320,13 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
 
     private void processQuestionSummary( ApiWhistlerQuestionSummary summary )
     {
-        String sound = "incorrect-general";
+        MediaPlayer sound = incorrectSound;
         String correctAnswer = null;
         String incorrectAnswer = summary.getYourOffairAnswerId();
 
         if ( summary.getYouGotItRight() )
         {
-            sound = "correct-general";
+            sound = correctSound;
             incorrectAnswer = null;
         }
 
@@ -331,7 +337,8 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
                 correctAnswer = answer.getOffairAnswerId();
             }
         }
-        playSound( sound );
+
+        if ( sound != null ) sound.start();
 
         for ( WhistlerAnswerButtonView v : answerViews )
         {
@@ -381,6 +388,12 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
         for ( WhistlerAnswerButtonView v : answerViews )
         {
             v.setEnabled( false );
+        }
+
+        if ( countdownSound != null )
+        {
+            countdownSound.pause();
+            countdownSound.seekTo( 0 );
         }
 
         Flowable<ApiWhistlerQuestionSummary> summary = getAuthedApi().whistlerSubmitAnswer( currentGame.getGameUuid(), new ApiOutgoingWhistlerAnswer( offairAnswerId ) );
