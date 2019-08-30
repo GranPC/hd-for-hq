@@ -15,7 +15,7 @@ public class HDHeaderInterceptor implements Interceptor
     {
         Request request = chain.request();
         request = request.newBuilder()
-            .addHeader( "x-hq-client", "Android/1.39.0 + HD4HQ" )
+            .addHeader( "x-hq-client", "Android/1.40.0 + HD4HQ" )
             .build();
 
         return chain.proceed( request );
