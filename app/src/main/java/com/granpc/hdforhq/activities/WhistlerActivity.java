@@ -34,6 +34,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.granpc.hdforhq.interfaces.WhistlerAnswerListener;
+import com.granpc.hdforhq.media.GaplessLoopMediaPlayer;
 import com.granpc.hdforhq.models.ApiOutgoingWhistlerAnswer;
 import com.granpc.hdforhq.models.ApiWhistlerAnswerResult;
 import com.granpc.hdforhq.models.ApiWhistlerGame;
@@ -58,7 +59,7 @@ import io.reactivex.schedulers.Schedulers;
 public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerListener
 {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private MediaPlayer bgMusic;
+    private GaplessLoopMediaPlayer bgMusic;
     private List<View> splashViews = new ArrayList<View>();
 
     private ConstraintLayout gameLayout;
@@ -69,23 +70,6 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
 
     public WhistlerActivity()
     {
-    }
-
-    private MediaPlayer playSound( String name )
-    {
-        File f = new File( Environment.getExternalStorageDirectory().getPath() + "/HD4HQ/res/sfx/" + name + ".mp3" );
-
-        if ( f.exists() )
-        {
-            MediaPlayer player = MediaPlayer.create( thiz, Uri.fromFile( f ) );
-            if ( player != null )
-            {
-                player.start();
-                return player;
-            }
-        }
-
-        return null;
     }
 
     // I really ought to figure out a way to import XML layouts...
@@ -248,6 +232,31 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
         return layout;
     }
 
+    private MediaPlayer playSound( String name )
+    {
+        File f = new File( Environment.getExternalStorageDirectory().getPath() + "/HD4HQ/res/sfx/" + name + ".mp3" );
+
+        if ( f.exists() )
+        {
+            MediaPlayer player = MediaPlayer.create( thiz, Uri.fromFile( f ) );
+            if ( player != null )
+            {
+                player.start();
+                return player;
+            }
+        }
+
+        return null;
+    }
+
+    private GaplessLoopMediaPlayer playLoopingSound( String name )
+    {
+        GaplessLoopMediaPlayer player =
+            new GaplessLoopMediaPlayer( thiz, Environment.getExternalStorageDirectory().getPath() + "/HD4HQ/res/sfx/" + name + ".mp3" );
+
+        return player.isValid() ? player : null;
+    }
+
     @Override
     public void onCreate( Bundle bundle )
     {
@@ -281,9 +290,7 @@ public class WhistlerActivity extends BaseHQActivity implements WhistlerAnswerLi
         thiz.setContentView( generateLayout() );
 
         playSound( "whistlerSplash1.0" );
-        bgMusic = playSound( "whistlerBed3.1" );
-        if ( bgMusic != null )
-            bgMusic.setLooping( true );
+        bgMusic = playLoopingSound( "whistlerBed3.1" );
     }
 
     private void displayQuestion( ApiWhistlerQuestion question )
